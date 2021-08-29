@@ -1,114 +1,130 @@
 /*
 
-Example for ESP_8_BIT color composite video generator library on ESP32.
+Example application of ESP_8_BIT color composite video generator library on ESP32.
 Connect GPIO25 to signal line, usually the center of composite video plug.
 
-GFX Hello World
+Plays an animated GIF using the AnimatedGIF library by Larry Bank [bitbank2]
+https://github.com/bitbank2/AnimatedGIF
 
-This demonstrates using the ESP_8_BIT_GFX class, which inherits from the
-Adafruit GFX base class to deliver an easy to use graphics API. Draws two
-rectangles that cycle around the border of the screen. The amount of corners
-cut off from these rectangle show the amount of overscan on a particular
-screen. In the middle of two rectangles are a bit of text drawn using
-Adafruit GFX print() API.
+Lightly modified from AnimatedGIF library's example "ESP32_LEDMatrix_I2S"
 
-Copyright (c) Roger Cheng
+AnimatedGIF library and example was released under Apache 2.0 license.
+https://github.com/bitbank2/AnimatedGIF/blob/master/LICENSE
 
-MIT License
+Cat and Galactic Squid friend by Emily Velasco
+https://twitter.com/MLE_Online/status/1393660363191717888
+Released under Creative Commons Attribution-ShareAlike (CC BY-SA 4.0) license
+https://creativecommons.org/licenses/by-sa/4.0/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Converted to byte array via Unix/Linux command line utility xxd
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+  xxd -i cat_and_galactic_squid.gif cat_and_galactic_squid.h
+
+Then manually adding 'const' to move it out of precious dynamic memory
 
 */
 
+#include <Arduino.h>
+#include <Wire.h>
+#include <SPI.h>
+#include <AnimatedGIF.h>
 #include <ESP_8_BIT_GFX.h>
-
-// A list of 8-bit color values that work well in a cycle.
-uint8_t colorCycle[] = {
-    0xFF,  // White
-    0xFE,  // Lowering blue
-    0xFD,
-    0xFC,  // No blue
-    0xFD,  // Raising blue
-    0xFE,
-    0xFF,  // White
-    0xF3,  // Lowering green
-    0xE7,
-    0xE3,  // No green
-    0xE7,  // Raising green
-    0xF3,
-    0xFF,  // White
-    0x9F,  // Lowering red
-    0x5F,
-    0x1F,  // No red
-    0x5F,  // Raising red
-    0x9F,
-    0xFF};
+#include "non_4b.h"
 
 // Create an instance of the graphics library
-ESP_8_BIT_GFX videoOut(true, 8);
+ESP_8_BIT_GFX videoOut(true /* = NTSC */, 16 /* = RGB565 colors will be downsampled to 8-bit RGB332 */);
+AnimatedGIF gif;
+
+// Vertical margin to compensate for aspect ratio
+const int margin = 10;
+
+// Draw a line of image to ESP_8_BIT_GFX frame buffer
+void GIFDraw(GIFDRAW *pDraw) {
+    uint8_t *s;
+    uint16_t *d, *usPalette, usTemp[320];
+    int x, y;
+
+    usPalette = pDraw->pPalette;
+    y         = pDraw->iY + pDraw->y;  // current line
+
+    s = pDraw->pPixels;
+    if (pDraw->ucDisposalMethod == 2)  // restore to background color
+    {
+        for (x = 0; x < pDraw->iWidth; x++) {
+            if (s[x] == pDraw->ucTransparent)
+                s[x] = pDraw->ucBackground;
+        }
+        pDraw->ucHasTransparency = 0;
+    }
+    // Apply the new pixels to the main image
+    if (pDraw->ucHasTransparency)  // if transparency used
+    {
+        uint8_t *pEnd, c, ucTransparent = pDraw->ucTransparent;
+        int x, iCount;
+        pEnd   = s + pDraw->iWidth;
+        x      = 0;
+        iCount = 0;  // count non-transparent pixels
+        while (x < pDraw->iWidth) {
+            c = ucTransparent - 1;
+            d = usTemp;
+            while (c != ucTransparent && s < pEnd) {
+                c = *s++;
+                if (c == ucTransparent)  // done, stop
+                {
+                    s--;  // back up to treat it like transparent
+                } else    // opaque
+                {
+                    *d++ = usPalette[c];
+                    iCount++;
+                }
+            }            // while looking for opaque pixels
+            if (iCount)  // any opaque pixels?
+            {
+                for (int xOffset = 0; xOffset < iCount; xOffset++) {
+                    videoOut.drawPixel(pDraw->iX + x + xOffset, margin + y, usTemp[xOffset]);
+                }
+                x += iCount;
+                iCount = 0;
+            }
+            // no, look for a run of transparent pixels
+            c = ucTransparent;
+            while (c == ucTransparent && s < pEnd) {
+                c = *s++;
+                if (c == ucTransparent)
+                    iCount++;
+                else
+                    s--;
+            }
+            if (iCount) {
+                x += iCount;  // skip these
+                iCount = 0;
+            }
+        }
+    } else {
+        s = pDraw->pPixels;
+        // Translate the 8-bit pixels through the RGB565 palette (already byte reversed)
+        for (x = 0; x < pDraw->iWidth; x++) {
+            videoOut.drawPixel(x, margin + y, usPalette[*s++]);
+        }
+    }
+} /* GIFDraw() */
 
 void setup() {
-    // Initial setup of graphics library
     videoOut.begin();
+    videoOut.copyAfterSwap = true;  // gif library depends on data from previous buffer
+    videoOut.fillScreen(0);
+    videoOut.waitForFrame();
+
+    //gif.setDrawType(GIF_DRAW_COOKED);
+    gif.begin(LITTLE_ENDIAN_PIXELS);
 }
 
 void loop() {
-    // Wait for the next frame to minimize chance of visible tearing
-    videoOut.waitForFrame();
-
-    // Get the current time and calculate a scaling factor
-    unsigned long time   = millis();
-    float partial_second = (float)(time % 1000) / 1000.0;
-
-    // Use time scaling factor to calculate coordinates and colors
-    uint8_t movingX = (uint8_t)(255 * partial_second);
-    uint8_t invertX = 255 - movingX;
-    uint8_t movingY = (uint8_t)(239 * partial_second);
-    uint8_t invertY = 239 - movingY;
-
-    uint8_t cycle   = colorCycle[(uint8_t)(17 * partial_second)];
-    uint8_t invertC = 0xFF - cycle;
-
-    // Clear screen
-    videoOut.fillScreen(0);
-
-    // // Draw one rectangle
-    // videoOut.drawLine(movingX, 0, 255, movingY, cycle);
-    // videoOut.drawLine(255, movingY, invertX, 239, cycle);
-    // videoOut.drawLine(invertX, 239, 0, invertY, cycle);
-    // videoOut.drawLine(0, invertY, movingX, 0, cycle);
-
-    // // Draw a rectangle with inverted position and color
-    // videoOut.drawLine(invertX, 0, 255, invertY, invertC);
-    // videoOut.drawLine(255, invertY, movingX, 239, invertC);
-    // videoOut.drawLine(movingX, 239, 0, movingY, invertC);
-    // videoOut.drawLine(0, movingY, invertX, 0, invertC);
-
-    // Draw text in the middle of the screen
-    videoOut.setCursor(25, 80);
-    videoOut.setTextColor(0xFF);
-    videoOut.setTextSize(2);
-    videoOut.setTextWrap(false);
-    videoOut.print("Adafruit GFX API");
-    videoOut.setCursor(110, 120);
-    videoOut.setTextColor(0xFF);
-    videoOut.print("on");
-    videoOut.setCursor(30, 160);
-    videoOut.setTextColor(0xFF);
-    videoOut.print("ESP_8_BIT video");
+    if (gif.open((uint8_t *)non_4b_gif, non_4b_len, GIFDraw)) {
+        while (gif.playFrame(true, NULL)) {
+            videoOut.waitForFrame();
+        }
+        videoOut.waitForFrame();
+        gif.close();
+    }
 }
