@@ -36,7 +36,8 @@ ESP_8_BIT_GFX videoOut(true /* = NTSC */, 16 /* = RGB565 colors will be downsamp
 AnimatedGIF gif;
 
 // Vertical margin to compensate for aspect ratio
-const int margin = 10;
+const int margin   = 70;
+const int margin_x = 30;
 
 // Draw a line of image to ESP_8_BIT_GFX frame buffer
 void GIFDraw(GIFDRAW *pDraw) {
@@ -104,7 +105,7 @@ void GIFDraw(GIFDRAW *pDraw) {
         s = pDraw->pPixels;
         // Translate the 8-bit pixels through the RGB565 palette (already byte reversed)
         for (x = 0; x < pDraw->iWidth; x++) {
-            videoOut.drawPixel(x, margin + y, usPalette[*s++]);
+            videoOut.drawPixel(margin_x + x, margin + y, usPalette[*s++]);
         }
     }
 } /* GIFDraw() */
@@ -120,7 +121,7 @@ void setup() {
 }
 
 void loop() {
-    if (gif.open((uint8_t *)non_4b_gif, non_4b_len, GIFDraw)) {
+    if (gif.open((uint8_t *)non_4b_gif, 1571791, GIFDraw)) {
         while (gif.playFrame(true, NULL)) {
             videoOut.waitForFrame();
         }
