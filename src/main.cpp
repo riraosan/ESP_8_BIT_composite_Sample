@@ -29,14 +29,18 @@ Then manually adding 'const' to move it out of precious dynamic memory
 #include <SPI.h>
 #include <AnimatedGIF.h>
 #include <ESP_8_BIT_GFX.h>
-#include "non_4b.h"
+#include "non_4b_gif.h"
 
 // Create an instance of the graphics library
 ESP_8_BIT_GFX videoOut(true /* = NTSC */, 16 /* = RGB565 colors will be downsampled to 8-bit RGB332 */);
 AnimatedGIF gif;
 
 // Vertical margin to compensate for aspect ratio
-const int margin = 10;
+constexpr int margin = 10;
+
+constexpr int _gif_offset_x  = (256 - 180) / 2 - 10;
+constexpr int _text_offset_y = 112;
+constexpr int _text_offset_x = _gif_offset_x - 10;
 
 // Draw a line of image to ESP_8_BIT_GFX frame buffer
 void GIFDraw(GIFDRAW *pDraw) {
@@ -104,7 +108,7 @@ void GIFDraw(GIFDRAW *pDraw) {
         s = pDraw->pPixels;
         // Translate the 8-bit pixels through the RGB565 palette (already byte reversed)
         for (x = 0; x < pDraw->iWidth; x++) {
-            videoOut.drawPixel(x, margin + y, usPalette[*s++]);
+            videoOut.drawPixel(_gif_offset_x + x, margin + y, usPalette[*s++]);
         }
     }
 } /* GIFDraw() */
@@ -120,8 +124,21 @@ void setup() {
 }
 
 void loop() {
-    if (gif.open((uint8_t *)non_4b_gif, non_4b_len, GIFDraw)) {
+    if (gif.open((uint8_t *)non_4b_gif, 2252208, GIFDraw)) {
         while (gif.playFrame(true, NULL)) {
+            videoOut.setTextSize(1);
+            videoOut.setTextColor(0xFFFF, 0x0000);
+            videoOut.printEfont("機動戦士のんちゃん／第4話", _text_offset_x, _text_offset_y + 16 * 0);
+            videoOut.printEfont("   「愛戦士」Bパート", _text_offset_x, _text_offset_y + 16 * 1);
+            videoOut.setTextColor(0xf800, 0x0000);
+            videoOut.printEfont("          using", _text_offset_x, _text_offset_y + 16 * 2);
+            videoOut.setTextColor(0xFFFF, 0x03e0);
+            videoOut.printEfont("ESP_8_BIT_composite Library  ", _text_offset_x - 12, _text_offset_y + 16 * 3);
+            videoOut.setTextColor(0xFFFF, 0x001f);
+            videoOut.printEfont("AnimatedGIF Library          ", _text_offset_x - 12, _text_offset_y + 16 * 4);
+            videoOut.setTextColor(0xFFFF, 0xf800);
+            videoOut.printEfont("EfontWrapper Library         ", _text_offset_x - 12, _text_offset_y + 16 * 5);
+
             videoOut.waitForFrame();
         }
         videoOut.waitForFrame();
