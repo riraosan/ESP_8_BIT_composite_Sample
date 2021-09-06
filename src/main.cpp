@@ -119,7 +119,6 @@ void setup() {
     videoOut.fillScreen(0);
     videoOut.waitForFrame();
 
-    //gif.setDrawType(GIF_DRAW_COOKED);
     gif.begin(LITTLE_ENDIAN_PIXELS);
 }
 
@@ -127,17 +126,14 @@ void loop() {
     if (gif.open((uint8_t *)non_4b_gif, 2252208, GIFDraw)) {
         while (gif.playFrame(true, NULL)) {
             videoOut.setTextSize(1);
-            videoOut.setTextColor(0xFFFF, 0x0000);
-            videoOut.printEfont("機動戦士のんちゃん／第4話", _text_offset_x, _text_offset_y + 16 * 0);
-            videoOut.printEfont("   「愛戦士」Bパート", _text_offset_x, _text_offset_y + 16 * 1);
             videoOut.setTextColor(0xf800, 0x0000);
-            videoOut.printEfont("          using", _text_offset_x, _text_offset_y + 16 * 2);
+            videoOut.printEfont("          By using             ", _text_offset_x - 12, _text_offset_y + 16 * 2);
             videoOut.setTextColor(0xFFFF, 0x03e0);
-            videoOut.printEfont("ESP_8_BIT_composite Library  ", _text_offset_x - 12, _text_offset_y + 16 * 3);
+            videoOut.printEfont("ESP_8_BIT_composite Library    ", _text_offset_x - 12, _text_offset_y + 16 * 3);
             videoOut.setTextColor(0xFFFF, 0x001f);
-            videoOut.printEfont("AnimatedGIF Library          ", _text_offset_x - 12, _text_offset_y + 16 * 4);
+            videoOut.printEfont("AnimatedGIF Library            ", _text_offset_x - 12, _text_offset_y + 16 * 4);
             videoOut.setTextColor(0xFFFF, 0xf800);
-            videoOut.printEfont("EfontWrapper Library         ", _text_offset_x - 12, _text_offset_y + 16 * 5);
+            videoOut.printEfont("EfontWrapper Library           ", _text_offset_x - 12, _text_offset_y + 16 * 5);
 
             videoOut.waitForFrame();
         }
