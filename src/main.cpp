@@ -30,6 +30,12 @@ Then manually adding 'const' to move it out of precious dynamic memory
 #include <AnimatedGIF.h>
 #include <ESP_8_BIT_GFX.h>
 #include "non_4b_gif.h"
+#include <IRremoteESP8266.h>
+#include <IRsend.h>
+
+const uint16_t kIrLed = 12;  // ESP8266 GPIO pin to use. Recommended: 4 (D2).
+
+IRsend irsend(kIrLed);  // Set the GPIO to be used to sending the message.
 
 // Create an instance of the graphics library
 ESP_8_BIT_GFX videoOut(true /* = NTSC */, 16 /* = RGB565 colors will be downsampled to 8-bit RGB332 */);
@@ -114,6 +120,13 @@ void GIFDraw(GIFDRAW *pDraw) {
 } /* GIFDraw() */
 
 void setup() {
+    irsend.begin();
+    delay(1000);
+    irsend.sendPanasonic(0x555A, 0xF148688B);
+    delay(10);
+    irsend.sendPanasonic(0x555A, 0xF148688B);
+    delay(2000);
+
     videoOut.begin();
     videoOut.copyAfterSwap = true;  // gif library depends on data from previous buffer
     videoOut.fillScreen(0);
