@@ -2,15 +2,11 @@
 #include <AnimatedGIF.h>
 #include <Arduino.h>
 #include <ESP_8_BIT_GFX.h>
-#include <IRremoteESP8266.h>
-#include <IRsend.h>
+#include <FS.h>
+#include <M5Atom.h>
+#include <SD.h>
 #include <SPI.h>
-#include <SPIFFS.h>
 #include <Wire.h>
-
-constexpr uint16_t kIrLed = 12;  // ESP8266 GPIO pin to use. Recommended: 4 (D2).
-
-IRsend irsend(kIrLed);  // Set the GPIO to be used to sending the message.
 
 // Create an instance of the graphics library
 ESP_8_BIT_GFX videoOut(true, 16);
@@ -23,21 +19,23 @@ constexpr int _gifOffset_y  = 50;
 constexpr int _textOffset_x = 6;
 constexpr int _textOffset_y = 6;
 
+constexpr char NON_GIF[] = "/non.gif";
+
 void *_GIFOpenFile(const char *fname, int32_t *pSize) {
-  _file = SPIFFS.open(fname);
+  _file = SD.open(fname);
 
   if (_file) {
     *pSize = _file.size();
     return (void *)&_file;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void _GIFCloseFile(void *pHandle) {
   File *f = static_cast<File *>(pHandle);
 
-  if (f != NULL)
+  if (f != nullptr)
     f->close();
 }
 
@@ -138,36 +136,48 @@ void _GIFDraw(GIFDRAW *pDraw) {
 }
 
 void setup() {
-  irsend.begin();
+  log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
+
+  M5.begin(true, false, false);
+  SPI.begin(23, 33, 19, -1);
+
+  SD.end();
+
   delay(1000);
-  irsend.sendPanasonic(0x555A, 0xF148688B);
-  delay(10);
-  irsend.sendPanasonic(0x555A, 0xF148688B);
-  delay(2000);
 
-  log_d("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
-
-  if (!SPIFFS.begin()) {
-    log_e("FILESYSTEM Mount Failed");
+  if (!SD.begin(-1, SPI, 10000000)) {
+    log_e("Card Mount Failed");
     return;
   }
+
+  if (SD.cardType() == CARD_NONE) {
+    log_e("No SD card attached");
+    return;
+  }
+
+  log_i("SD card attached");
+
   videoOut.begin();
   videoOut.copyAfterSwap = true;  // gif library depends on data from previous buffer
   videoOut.fillScreen(0);
   videoOut.waitForFrame();
 
   gif.begin(LITTLE_ENDIAN_PIXELS);
+
+  log_i("start videoOut");
+
+  log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
 }
 
 void loop() {
-  if (gif.open("/drain.gif", _GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw)) {
+  if (gif.open(NON_GIF, _GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw)) {
     while (gif.playFrame(true, NULL)) {
-      videoOut.setTextSize(1);
-      videoOut.setTextColor(0xFFFF, 0x0000);
-      videoOut.printEfont("          By using           ", _textOffset_x, _textOffset_y + 16 * 10);
-      videoOut.printEfont("ESP_8_BIT_composite Library  ", _textOffset_x, _textOffset_y + 16 * 11);
-      videoOut.printEfont("AnimatedGIF Library          ", _textOffset_x, _textOffset_y + 16 * 12);
-      videoOut.printEfont("EfontWrapper Library         ", _textOffset_x, _textOffset_y + 16 * 13);
+      // videoOut.setTextSize(1);
+      // videoOut.setTextColor(0xFFFF, 0x0000);
+      // videoOut.printEfont("          By using           ", _textOffset_x, _textOffset_y + 16 * 10);
+      // videoOut.printEfont("ESP_8_BIT_composite Library  ", _textOffset_x, _textOffset_y + 16 * 11);
+      // videoOut.printEfont("AnimatedGIF Library          ", _textOffset_x, _textOffset_y + 16 * 12);
+      // videoOut.printEfont("EfontWrapper Library         ", _textOffset_x, _textOffset_y + 16 * 13);
 
 #if defined(DEBUG)
       // x:0~28 y:0~13
