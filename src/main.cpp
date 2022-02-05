@@ -14,14 +14,14 @@ AnimatedGIF gif;
 File _file;
 
 // Vertical margin to compensate for aspect ratio
-constexpr int _gifOffset_x  = 6;
+constexpr int _gifOffset_x  = 30;
 constexpr int _gifOffset_y  = 50;
 constexpr int _textOffset_x = 6;
 constexpr int _textOffset_y = 6;
 
 constexpr char NON_GIF[] = "/non.gif";
 
-void *_GIFOpenFile(const char *fname, int32_t *pSize) {
+inline void *_GIFOpenFile(const char *fname, int32_t *pSize) {
   _file = SD.open(fname);
 
   if (_file) {
@@ -32,14 +32,14 @@ void *_GIFOpenFile(const char *fname, int32_t *pSize) {
   return nullptr;
 }
 
-void _GIFCloseFile(void *pHandle) {
+inline void _GIFCloseFile(void *pHandle) {
   File *f = static_cast<File *>(pHandle);
 
   if (f != nullptr)
     f->close();
 }
 
-int32_t _GIFReadFile(GIFFILE *pFile, uint8_t *pBuf, int32_t iLen) {
+inline int32_t _GIFReadFile(GIFFILE *pFile, uint8_t *pBuf, int32_t iLen) {
   int32_t iBytesRead;
   iBytesRead = iLen;
   File *f    = static_cast<File *>(pFile->fHandle);
@@ -55,7 +55,7 @@ int32_t _GIFReadFile(GIFFILE *pFile, uint8_t *pBuf, int32_t iLen) {
   return iBytesRead;
 }
 
-int32_t _GIFSeekFile(GIFFILE *pFile, int32_t iPosition) {
+inline int32_t _GIFSeekFile(GIFFILE *pFile, int32_t iPosition) {
   int i   = micros();
   File *f = static_cast<File *>(pFile->fHandle);
 
@@ -66,7 +66,7 @@ int32_t _GIFSeekFile(GIFFILE *pFile, int32_t iPosition) {
   return pFile->iPos;
 }
 
-void _GIFDraw(GIFDRAW *pDraw) {
+inline void _GIFDraw(GIFDRAW *pDraw) {
   uint8_t *s;
   uint16_t *d, *usPalette, usTemp[320];
   int x, y;
@@ -170,14 +170,28 @@ void setup() {
 }
 
 void loop() {
+  int waitTime    = 0;
+  int frameCount  = 0;
+  long lTimeStart = 0;
+  long lTimeEnd   = 0;
+
   if (gif.open(NON_GIF, _GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw)) {
-    while (gif.playFrame(true, NULL)) {
-      // videoOut.setTextSize(1);
-      // videoOut.setTextColor(0xFFFF, 0x0000);
-      // videoOut.printEfont("          By using           ", _textOffset_x, _textOffset_y + 16 * 10);
-      // videoOut.printEfont("ESP_8_BIT_composite Library  ", _textOffset_x, _textOffset_y + 16 * 11);
-      // videoOut.printEfont("AnimatedGIF Library          ", _textOffset_x, _textOffset_y + 16 * 12);
-      // videoOut.printEfont("EfontWrapper Library         ", _textOffset_x, _textOffset_y + 16 * 13);
+    log_n("start gif animation");
+    lTimeStart = millis();
+
+    while (gif.playFrame(false, &waitTime)) {
+      videoOut.waitForFrame();
+      lTimeEnd = millis();
+
+      long delta = lTimeEnd - lTimeStart;
+      if (waitTime > delta) {
+        delay(waitTime - delta);
+      } else {
+        // log_w("waitTime[%d] < delta[%d]...", waitTime, delta);
+      }
+
+      // log_d("frame No.[%04d], wait %04d[ms], wait for Frame %04d[ms]", frameCount, waitTime, delta);
+      frameCount++;
 
 #if defined(DEBUG)
       // x:0~28 y:0~13
@@ -187,10 +201,10 @@ void loop() {
       videoOut.printEfont("*", _textOffset_x + 8 * 0, _textOffset_y + 16 * 13);
       videoOut.printEfont("*", _textOffset_x + 8 * 28, _textOffset_y + 16 * 13);
 #endif
-
-      videoOut.waitForFrame();
+      lTimeStart = millis();
     }
     videoOut.waitForFrame();
+    log_n("end gif animation");
     gif.close();
   }
 }
