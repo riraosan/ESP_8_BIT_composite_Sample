@@ -19,7 +19,7 @@ constexpr int _gifOffset_y  = 50;
 constexpr int _textOffset_x = 6;
 constexpr int _textOffset_y = 6;
 
-constexpr char NON_GIF[] = "/non2.gif";
+constexpr char NON_GIF[] = "/non.gif";
 
 inline void *_GIFOpenFile(const char *fname, int32_t *pSize) {
   _file = SD.open(fname);
