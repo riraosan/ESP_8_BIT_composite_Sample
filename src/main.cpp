@@ -19,7 +19,7 @@ constexpr int _gifOffset_y  = 50;
 constexpr int _textOffset_x = 6;
 constexpr int _textOffset_y = 6;
 
-constexpr char NON_GIF[] = "/non.gif";
+constexpr char NON_GIF[] = "/non2.gif";
 
 inline void *_GIFOpenFile(const char *fname, int32_t *pSize) {
   _file = SD.open(fname);
@@ -184,10 +184,10 @@ void loop() {
       lTimeEnd = millis();
 
       long delta = lTimeEnd - lTimeStart;
-      if (waitTime > delta) {
+      if (waitTime >= delta) {
         delay(waitTime - delta);
       } else {
-        // log_w("waitTime[%d] < delta[%d]...", waitTime, delta);
+        log_w("Frame No.[%04d], waitTime[%d] < delta[%d]...", frameCount, waitTime, delta);
       }
 
       // log_d("frame No.[%04d], wait %04d[ms], wait for Frame %04d[ms]", frameCount, waitTime, delta);
