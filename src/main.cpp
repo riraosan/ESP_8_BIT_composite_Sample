@@ -1,9 +1,10 @@
 
-#include <AnimatedGIF.h>
 #include <Arduino.h>
+#include <M5Atom.h>
+#include <Audio.hpp>
+#include <AnimatedGIF.h>
 #include <ESP_8_BIT_GFX.h>
 #include <FS.h>
-#include <M5Atom.h>
 #include <SD.h>
 #include <SPI.h>
 #include <Wire.h>
@@ -12,6 +13,8 @@
 ESP_8_BIT_GFX videoOut(true, 16);
 AnimatedGIF gif;
 File _file;
+#define AUDIO_TEST
+Audio _mp3Audio;
 
 // Vertical margin to compensate for aspect ratio
 constexpr int _gifOffset_x  = 30;
@@ -153,23 +156,33 @@ void setup() {
   if (SD.cardType() == CARD_NONE) {
     log_e("No SD card attached");
     return;
+  } else {
+    log_i("SD card attached");
+
+    _mp3Audio.setTaskName("Audio");
+    _mp3Audio.setTaskSize(8192);
+    _mp3Audio.setTaskPriority(2);
+    _mp3Audio.setCore(0);  // loop() is CORE1
+    _mp3Audio.begin();
+    _mp3Audio.start(nullptr);
+
+#if !defined(AUDIO_TEST)
+    videoOut.begin();
+    videoOut.copyAfterSwap = true;  // gif library depends on data from previous buffer
+    videoOut.fillScreen(0);
+    videoOut.waitForFrame();
+
+    gif.begin(LITTLE_ENDIAN_PIXELS);
+
+    log_i("start videoOut");
+
+    log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
+#endif
   }
-
-  log_i("SD card attached");
-
-  videoOut.begin();
-  videoOut.copyAfterSwap = true;  // gif library depends on data from previous buffer
-  videoOut.fillScreen(0);
-  videoOut.waitForFrame();
-
-  gif.begin(LITTLE_ENDIAN_PIXELS);
-
-  log_i("start videoOut");
-
-  log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
 }
 
 void loop() {
+#if !defined(AUDIO_TEST)
   int waitTime    = 0;
   int frameCount  = 0;
   long lTimeStart = 0;
@@ -207,4 +220,6 @@ void loop() {
     log_n("end gif animation");
     gif.close();
   }
+#endif
+  delay(1);
 }
