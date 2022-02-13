@@ -1,5 +1,5 @@
 .git
-.gitignore
 .pio
-.vscode/
-src/secrets.h
+.vscode/c_cpp_properties.json
+.vscode/extension.json
+.vscode/launch.json

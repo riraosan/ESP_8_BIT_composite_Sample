@@ -1,71 +1,87 @@
 
 #pragma once
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-#include <Arduino.h>
+#define USE_HELIX
+#define USE_A2DP
+
 #include <M5Atom.h>
-#include <FS.h>
-#include <SD.h>
-#include <SPI.h>
-#include <Wire.h>
 #include <AudioTools.h>
+#include <AudioCodecs/CodecMP3Helix.h>
+#include <SPI.h>
+#include <SdFat.h>
 
 using namespace audio_tools;
-#include <AudioCodecs/CodecMP3Helix.h>
 
-class Audio : public Task {
- public:
+class Audio {
+public:
   Audio() : _source(A2DPStream::instance()),
-            _decoder(&_source, new MP3DecoderHelix()),
-            _bleSpeakerName("TaoTronics TT-BR06"),
-            _filename("/non.mp3"){};
+            _decoder(&_source, &_mp3decoder),
+            _copy(_decoder, _audioFile),
+            _bleSpeakerName(""),
+            _filename(""),
+            _active(false){
 
-  void begin(void) {
+            };
+
+  void begin() {
     // Serial.begin(115200);
     // AudioLogger::instance().begin(Serial, AudioLogger::Info);
+    if (_pSD != nullptr) {
+      _audioFile = _pSD->open(_filename.c_str());
+      if (_audioFile.size() > 0) {
+        log_i("Open Audio File...");
 
-    if (SD.cardType() == CARD_SDHC) {
-      _source.setVolume(8);
-      _source.begin(TX_MODE, _bleSpeakerName.c_str());
-      log_i("A2DP is connected now...");
+        _source.setVolume(1.0);
+        _source.begin(TX_MODE, _bleSpeakerName.c_str());
+        log_i("A2DP is connected now...");
 
-      _audioFile = SD.open(_filename.c_str());
-      log_i("Open Audio File...");
+        _decoder.setNotifyAudioChange(_source);
+        if (_source.isConnected()) {
+          // log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
+          _decoder.begin();
+          log_i("Begin decoder...");
+          // log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
+          _active = true;
+        } else {
+          log_e("isConnected() is false");
+        }
 
-      _decoder.setNotifyAudioChange(_source);
-      _decoder.begin();
-      log_i("Begin decoder...");
-
-      _copy.begin(_decoder, _audioFile);
-      log_i("Begin copy _audioFile to decoder...");
-
-      auto info = _decoder.decoder().audioInfo();
-      log_i("The audio rate     from the mp3 file is %d", info.sample_rate);
-      log_i("The channels       from the mp3 file is %d", info.channels);
-      log_i("The bit per sample from the mp3 file is %d", info.bits_per_sample);
-    } else {
-      log_e("Please mount SDHC");
+      } else {
+        _active = false;
+        log_e("can not open mp3 file.");
+      }
     }
   };
 
-  void run(void* data) {
-    while (1) {
-      // long start = millis();
+  void setSdFat(SdFat *sd) {
+    _pSD = sd;
+  }
+
+  void setBleSpeakerName(String name) {
+    _bleSpeakerName = name;
+  }
+
+  void setFilename(String name) {
+    _filename = name;
+  }
+
+  void update() {
+    if (_active) {
       if (!_copy.copy()) {
-        log_i("Stop playing");
+        stop();
       }
-      // log_i("copy time = %d[ms]", millis() - start);
-      delay(1);
     }
   }
 
- private:
-  A2DPStream _source;
+private:
+  SdFat             *_pSD;
+  File               _audioFile;
+  A2DPStream         _source;
+  MP3DecoderHelix    _mp3decoder;
   EncodedAudioStream _decoder;
-  StreamCopy _copy;
-  File _audioFile;
+  StreamCopy         _copy;
 
   String _bleSpeakerName;
   String _filename;
+  bool   _active;
 };
