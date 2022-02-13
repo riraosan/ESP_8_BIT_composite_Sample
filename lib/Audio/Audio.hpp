@@ -37,10 +37,8 @@ public:
 
         _decoder.setNotifyAudioChange(_source);
         if (_source.isConnected()) {
-          // log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
           _decoder.begin();
           log_i("Begin decoder...");
-          // log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
           _active = true;
         } else {
           log_e("isConnected() is false");

@@ -13,8 +13,6 @@ constexpr int _gifOffset_y  = 50;
 constexpr int _textOffset_x = 6;
 constexpr int _textOffset_y = 6;
 
-ESP_8_BIT_GFX _videoOut(true, 16);
-
 class Video {
 public:
   Video(){};
@@ -35,7 +33,7 @@ public:
     long lTimeStart = 0;
 
     if (_gif.open(_filename.c_str(), _GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw)) {
-      log_n("start gif animation");
+      log_i("start gif animation");
       lTimeStart = millis();
       int waitTime;
 
@@ -50,7 +48,6 @@ public:
           log_w("Frame No.[%04d], waitTime[%d] < delta[%d]...", frameCount, waitTime, delta);
         }
 
-        // log_d("frame No.[%04d], wait %04d[ms], wait for Frame %04d[ms]", frameCount, waitTime, delta);
         frameCount++;
 
 #if defined(DEBUG)
@@ -64,7 +61,7 @@ public:
         lTimeStart = millis();
       }
       _videoOut.waitForFrame();
-      log_n("end gif animation");
+      log_i("end gif animation");
       _gif.close();
     }
   };
@@ -119,7 +116,7 @@ private:
     f->seek(iPosition);
     pFile->iPos = (int32_t)f->position();
     i           = micros() - i;
-    //  Serial.printf("Seek time = %d us\n", i);
+    // log_i("Seek time = %d us\n", i);
     return pFile->iPos;
   }
 
@@ -192,11 +189,14 @@ private:
     }
   }
 
-  static SdFat *_pSD;
-  static File   _gifFile;
-  AnimatedGIF   _gif;
-  String        _filename;
+  static SdFat        *_pSD;
+  static File          _gifFile;
+  static ESP_8_BIT_GFX _videoOut;
+
+  AnimatedGIF _gif;
+  String      _filename;
 };
 
-SdFat *Video::_pSD = nullptr;
-File   Video::_gifFile;
+SdFat        *Video::_pSD = nullptr;
+File          Video::_gifFile;
+ESP_8_BIT_GFX Video::_videoOut(true, 16);
