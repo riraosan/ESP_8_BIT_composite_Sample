@@ -4,7 +4,7 @@
 #define USE_HELIX
 #define USE_A2DP
 
-#include <M5Atom.h>
+#include <Arduino.h>
 #include <AudioTools.h>
 #include <AudioCodecs/CodecMP3Helix.h>
 #include <SPI.h>

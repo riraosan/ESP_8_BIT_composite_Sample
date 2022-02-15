@@ -2,7 +2,7 @@
 #define SDFAT_FILE_TYPE 1
 #define ENABLE_AUDIO
 
-#include <M5Atom.h>
+#include <Arduino.h>
 #include <SPI.h>
 #include <SdFat.h>
 
@@ -16,10 +16,20 @@ Video _composit;
 
 SdFat _SD;
 
+//#include <Connect.hpp>
+//Connect _wifi;
+
 bool active = false;
 
 void setup() {
   log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
+
+  // _wifi.setTaskName("AutoConnect");
+  // _wifi.setTaskSize(4096 * 1);
+  // _wifi.setTaskPriority(2);
+  // _wifi.setCore(0);
+  // _wifi.begin(SECRET_SSID, SECRET_PASS);
+  // _wifi.start(nullptr);
 
   SPI.begin(23, 33, 19, -1);
   if (!_SD.begin(SdSpiConfig(-1, DEDICATED_SPI, SD_SCK_MHZ(10), &SPI))) {

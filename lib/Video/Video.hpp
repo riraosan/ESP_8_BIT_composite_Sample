@@ -7,7 +7,6 @@
 #include <SPI.h>
 #include <SdFat.h>
 
-// Vertical margin to compensate for aspect ratio
 constexpr int _gifOffset_x  = 30;
 constexpr int _gifOffset_y  = 50;
 constexpr int _textOffset_x = 6;
