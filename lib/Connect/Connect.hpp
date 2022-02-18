@@ -4,12 +4,13 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <M5Atom.h>
-//#include <WiFi.h>
-//#include <WebServer.h>
+#include <WiFi.h>
+#include <WebServer.h>
 #include <ESPmDNS.h>
 #include <AutoConnect.h>
 using WiFiWebServer = WebServer;
 #include <esp32-hal-log.h>
+#include <secrets.h>
 
 class Connect : public Task {
 public:
@@ -76,6 +77,8 @@ public:
   }
 
   void run(void* data) {
+    begin(SECRET_SSID, SECRET_PASS);
+
     while (1) {
       _portal.handleClient();
       delay(1);

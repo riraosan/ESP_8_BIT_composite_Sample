@@ -7,8 +7,7 @@
 #include <Arduino.h>
 #include <AudioTools.h>
 #include <AudioCodecs/CodecMP3Helix.h>
-#include <SPI.h>
-#include <SdFat.h>
+#include <secrets.h>
 
 using namespace audio_tools;
 
@@ -16,9 +15,11 @@ class Audio {
 public:
   Audio() : _source(A2DPStream::instance()),
             _decoder(&_source, &_mp3decoder),
-            _copy(_decoder, _audioFile),
+            _urlStream(SECRET_SSID, SECRET_PASS),
+            _copy(_decoder, _urlStream),
             _bleSpeakerName(""),
             _filename(""),
+            _url(""),
             _active(false){
 
             };
@@ -26,41 +27,28 @@ public:
   void begin() {
     // Serial.begin(115200);
     // AudioLogger::instance().begin(Serial, AudioLogger::Info);
-    if (_pSD != nullptr) {
-      _audioFile = _pSD->open(_filename.c_str());
-      if (_audioFile.size() > 0) {
-        log_i("Open Audio File...");
 
-        _source.setVolume(1.0);
-        _source.begin(TX_MODE, _bleSpeakerName.c_str());
-        log_i("A2DP is connected now...");
+    _source.setVolume(1.0);
+    _source.begin(TX_MODE, _bleSpeakerName.c_str());
+    log_i("A2DP is connected now...");
+    log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
 
-        _decoder.setNotifyAudioChange(_source);
-        if (_source.isConnected()) {
-          _decoder.begin();
-          log_i("Begin decoder...");
-          _active = true;
-        } else {
-          log_e("isConnected() is false");
-        }
+    _decoder.setNotifyAudioChange(_source);
+    _decoder.begin();
+    log_i("Begin decoder...");
+    log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
 
-      } else {
-        _active = false;
-        log_e("can not open mp3 file.");
-      }
+    if (_urlStream.begin(_url.c_str(), "audio/mp3")) {
+      _active = true;
     }
-  };
-
-  void setSdFat(SdFat *sd) {
-    _pSD = sd;
   }
 
   void setBleSpeakerName(String name) {
     _bleSpeakerName = name;
   }
 
-  void setFilename(String name) {
-    _filename = name;
+  void setUrl(String url) {
+    _url = url;
   }
 
   void update() {
@@ -69,17 +57,18 @@ public:
         stop();
       }
     }
+    delay(1);
   }
 
 private:
-  SdFat             *_pSD;
-  File               _audioFile;
   A2DPStream         _source;
   MP3DecoderHelix    _mp3decoder;
   EncodedAudioStream _decoder;
+  URLStream          _urlStream;
   StreamCopy         _copy;
 
   String _bleSpeakerName;
   String _filename;
+  String _url;
   bool   _active;
 };

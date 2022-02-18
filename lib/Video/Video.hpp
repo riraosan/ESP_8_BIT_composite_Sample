@@ -5,7 +5,8 @@
 #include <AnimatedGIF.h>
 #include <ESP_8_BIT_GFX.h>
 #include <SPI.h>
-#include <SdFat.h>
+#include <FS.h>
+#include <SD.h>
 
 constexpr int _gifOffset_x  = 30;
 constexpr int _gifOffset_y  = 50;
@@ -63,9 +64,10 @@ public:
       log_i("end gif animation");
       _gif.close();
     }
+    delay(1);
   };
 
-  void setSdFat(SdFat *sd) {
+  void setSd(SD *sd) {
     _pSD = sd;
   }
 
@@ -188,7 +190,7 @@ private:
     }
   }
 
-  static SdFat        *_pSD;
+  static SD           *_pSD;
   static File          _gifFile;
   static ESP_8_BIT_GFX _videoOut;
 
@@ -196,6 +198,6 @@ private:
   String      _filename;
 };
 
-SdFat        *Video::_pSD = nullptr;
+SD           *Video::_pSD = nullptr;
 File          Video::_gifFile;
 ESP_8_BIT_GFX Video::_videoOut(true, 16);
