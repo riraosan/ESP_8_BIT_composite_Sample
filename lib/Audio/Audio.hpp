@@ -60,7 +60,7 @@ public:
     _filename = name;
   }
 
-  void setActive(bool active) {
+  void enableUpdate(bool active) {
     _active = active;
   }
 

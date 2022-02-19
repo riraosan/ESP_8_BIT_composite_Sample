@@ -33,8 +33,9 @@ void setup() {
 
 void loop() {
   if (M5.Btn.pressedFor(1000)) {
-    _mp3Audio.setActive(false);
+    _mp3Audio.enableUpdate(false);
     M5.dis.drawpix(0, 0x000000);
+    delay(2000);
     _mp3Audio.disconnect();
     ESP.restart();
     delay(1000);
@@ -42,14 +43,15 @@ void loop() {
 
   if (M5.Btn.wasPressed()) {
     if (_active) {
-      _mp3Audio.setActive(false);
-      M5.dis.drawpix(0, 0x0000FF);
+      _active = false;
+      M5.dis.drawpix(0, 0xFFFF00);
     } else {
-      _mp3Audio.setActive(true);
+      _active = true;
       M5.dis.drawpix(0, 0x00FF00);
     }
   }
 
+  _mp3Audio.enableUpdate(_active);
   _mp3Audio.update();
   M5.update();
   delay(1);
