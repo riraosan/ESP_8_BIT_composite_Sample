@@ -19,9 +19,10 @@ void setup() {
     log_e("Card Mount Failed");
     return;
   } else {
+    _mp3Audio.disconnect();
     _mp3Audio.setBleSpeakerName("Soundcore 3");
-    //_mp3Audio.setFilename("/non.mp3");
-    _mp3Audio.setFilename("/asa-ga-kuru.mp3");
+    _mp3Audio.setFilename("/non.mp3");
+    //_mp3Audio.setFilename("/asa-ga-kuru.mp3");
     _mp3Audio.setSDFS(&SD);
     _mp3Audio.begin();
   }
@@ -32,6 +33,7 @@ void setup() {
 
 void loop() {
   if (M5.Btn.pressedFor(1000)) {
+    _mp3Audio.setActive(false);
     M5.dis.drawpix(0, 0x000000);
     _mp3Audio.disconnect();
     ESP.restart();
@@ -40,18 +42,15 @@ void loop() {
 
   if (M5.Btn.wasPressed()) {
     if (_active) {
-      _active = false;
+      _mp3Audio.setActive(false);
       M5.dis.drawpix(0, 0x0000FF);
     } else {
-      _active = true;
+      _mp3Audio.setActive(true);
       M5.dis.drawpix(0, 0x00FF00);
     }
   }
 
-  if (_active) {
-    _mp3Audio.update();
-  }
-
+  _mp3Audio.update();
   M5.update();
   delay(1);
 }

@@ -73,7 +73,7 @@ public:
     if (_active) {
       if (!_copy.copy()) {
         _audioFile.seek(0);
-        //_active = false;
+        _active = false;
       }
     }
     delay(1);
