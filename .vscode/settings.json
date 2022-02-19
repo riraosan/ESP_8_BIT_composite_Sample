@@ -1,6 +1,6 @@
 {
   //https://clang.llvm.org/docs/ClangFormatStyleOptions.html
-  "C_Cpp.clang_format_style":         "{BasedOnStyle: Google, AlignConsecutiveAssignments: AcrossComments, ReferenceAlignment: Right, PointerAlignment: Right, IndentCaseLabels: true, AlignConsecutiveDeclarations: true, SortIncludes: Never, IndentWidth: 2, AccessModifierOffset: -2, ColumnLimit: 0, BreakStringLiterals: false, AlignConsecutiveAssignments: true, AlignConsecutiveMacros: AcrossEmptyLinesAndComments, AlwaysBreakBeforeMultilineStrings: false}",
+  "C_Cpp.clang_format_style": "{BasedOnStyle: Google, AlignConsecutiveAssignments: AcrossComments, ReferenceAlignment: Right, PointerAlignment: Right, IndentCaseLabels: true, AlignConsecutiveDeclarations: true, SortIncludes: Never, IndentWidth: 2, AccessModifierOffset: -2, ColumnLimit: 0, BreakStringLiterals: false, AlignConsecutiveAssignments: true, AlignConsecutiveMacros: AcrossEmptyLinesAndComments, AlwaysBreakBeforeMultilineStrings: false}",
   "C_Cpp.clang_format_fallbackStyle": "{BasedOnStyle: Google, AlignConsecutiveAssignments: AcrossComments, ReferenceAlignment: Right, PointerAlignment: Right, IndentCaseLabels: true, AlignConsecutiveDeclarations: true, SortIncludes: Never, IndentWidth: 2, AccessModifierOffset: -2, ColumnLimit: 0, BreakStringLiterals: false, AlignConsecutiveAssignments: true, AlignConsecutiveMacros: AcrossEmptyLinesAndComments, AlwaysBreakBeforeMultilineStrings: false}",
   "editor.formatOnSave": false,
   "editor.formatOnType": true,
@@ -49,4 +49,11 @@
     "initializer_list": "cpp",
     "fstream": "cpp"
   },
+  "markdown-pdf.styles": [
+    "./style.css"
+  ],
+  "markdown-pdf.margin.top": "2.5cm",
+  "markdown-pdf.margin.bottom": "3.5cm",
+  "markdown-pdf.margin.right": "2cm",
+  "markdown-pdf.margin.left": "2cm"
 }

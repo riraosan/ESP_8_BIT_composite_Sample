@@ -1,0 +1,114 @@
+body {
+  font-family: "游明朝体";
+  font-size: 11pt;
+}
+
+h1 {
+  font-family: "游ゴシック体";
+  padding-bottom: 0.3em;
+  line-height: 1.2;
+  border-bottom: 2px solid #A4CA68;
+  position: relative;
+  padding-left: 18px;
+  font-weight: bold;
+}
+
+h1:before {
+  background: #A4CA68;
+  content: "";
+  height: 28px;
+  width: 8px;
+  left: 0;
+  position: absolute;
+  top: 3px;
+}
+
+h2 {
+  font-family: "游ゴシック体";
+  padding-bottom: 0.3em;
+  line-height: 1.2;
+  position: relative;
+  padding-left: 18px;
+  font-weight: bold;
+}
+
+h2:before {
+  background: #A4CA68;
+  content: "";
+  height: 20px;
+  width: 5px;
+  left: 0px;
+  position: absolute;
+  top: 3px;
+}
+
+h3 {
+  font-family: "游ゴシック体";
+  text-decoration: none;
+  font-weight: bold;
+}
+
+ol {
+  counter-reset: li;
+  list-style: none;
+}
+
+ol li {
+  padding-left: 1em;
+  text-indent: -1em;
+  margin-bottom: 0.5em;
+}
+
+ol>li::before {
+  content: counter(li) ".";
+  counter-increment: li;
+  font-weight: bold;
+}
+
+p {
+  text-indent: 1em;
+}
+
+.no-jisage p {
+  text-indent: 0em;
+}
+
+code {
+  margin: 0 2px;
+  padding: 1px 5px;
+  white-space: nowrap;
+  background-color: #f8f8f8;
+  border-radius: 3px;
+  color: #4271ae !important;
+  border: 1px solid #cccccc;
+}
+
+pre code {
+  margin: 0;
+  padding: 0;
+  white-space: pre;
+  border: none;
+  background: transparent;
+  color: #000 !important;
+}
+
+blockquote p {
+  text-indent: 0em;
+}
+
+.img-wrapper {
+  text-align: center;
+}
+
+.img {
+  width: 80%;
+}
+
+.img--border {
+  border: #AAA solid 1px;
+}
+
+.caption {
+  font-size: 7.5pt;
+  line-height: 1.5;
+}
