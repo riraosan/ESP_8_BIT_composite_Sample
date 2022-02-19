@@ -3,12 +3,13 @@
 
 #define USE_HELIX
 #define USE_A2DP
+#define A2DP_BUFFER_COUNT 20 // to control exception
 
 #include <M5Atom.h>
 #include <AudioTools.h>
 #include <AudioCodecs/CodecMP3Helix.h>
 #include <SPI.h>
-#include <SdFat.h>
+#include <SD.h>
 
 using namespace audio_tools;
 
@@ -36,16 +37,10 @@ public:
         log_i("A2DP is connected now...");
 
         _decoder.setNotifyAudioChange(_source);
-        if (_source.isConnected()) {
-          // log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
-          _decoder.begin();
-          log_i("Begin decoder...");
-          // log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
-          _active = true;
-        } else {
-          log_e("isConnected() is false");
-        }
+        _decoder.begin();
+        log_i("Begin decoder...");
 
+        _active = true;
       } else {
         _active = false;
         log_e("can not open mp3 file.");
@@ -53,7 +48,7 @@ public:
     }
   };
 
-  void setSdFat(SdFat *sd) {
+  void setSDFS(SDFS *sd) {
     _pSD = sd;
   }
 
@@ -74,7 +69,7 @@ public:
   }
 
 private:
-  SdFat             *_pSD;
+  SDFS              *_pSD;
   File               _audioFile;
   A2DPStream         _source;
   MP3DecoderHelix    _mp3decoder;
