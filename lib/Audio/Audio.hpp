@@ -3,7 +3,7 @@
 
 #define USE_HELIX
 #define USE_A2DP
-#define A2DP_BUFFER_COUNT 20 // to control exception
+#define A2DP_BUFFER_COUNT 30  // to control exception ~128Kbps
 
 #include <M5Atom.h>
 #include <AudioTools.h>
@@ -60,12 +60,23 @@ public:
     _filename = name;
   }
 
-  void update() {
+  void setActive(bool active) {
+    _active = active;
+  }
+
+  void disconnect(void) {
+    _source.source().end(false);
+  }
+
+  void
+  update() {
     if (_active) {
       if (!_copy.copy()) {
-        stop();
+        _audioFile.seek(0);
+        //_active = false;
       }
     }
+    delay(1);
   }
 
 private:
