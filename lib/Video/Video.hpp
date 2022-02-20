@@ -67,7 +67,7 @@ public:
     delay(1);
   };
 
-  void setSd(SD *sd) {
+  void setSd(SDFS *sd) {
     _pSD = sd;
   }
 
@@ -190,7 +190,7 @@ private:
     }
   }
 
-  static SD           *_pSD;
+  static SDFS         *_pSD;
   static File          _gifFile;
   static ESP_8_BIT_GFX _videoOut;
 
@@ -198,6 +198,6 @@ private:
   String      _filename;
 };
 
-SD           *Video::_pSD = nullptr;
+SDFS         *Video::_pSD = nullptr;
 File          Video::_gifFile;
 ESP_8_BIT_GFX Video::_videoOut(true, 16);
