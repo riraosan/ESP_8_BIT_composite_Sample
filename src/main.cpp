@@ -1,6 +1,5 @@
 
 #include <M5Atom.h>
-
 #include <Video.hpp>
 #include <SPI.h>
 #include <SD.h>

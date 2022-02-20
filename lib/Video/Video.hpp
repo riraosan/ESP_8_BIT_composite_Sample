@@ -8,14 +8,16 @@
 #include <FS.h>
 #include <SD.h>
 
-constexpr int _gifOffset_x  = 30;
-constexpr int _gifOffset_y  = 50;
+constexpr int _gifOffset_x  = 6;
+constexpr int _gifOffset_y  = 6;
 constexpr int _textOffset_x = 6;
 constexpr int _textOffset_y = 6;
 
 class Video {
 public:
-  Video(){};
+  Video() : _filename(""){
+
+            };
 
   void begin(void) {
     _videoOut.copyAfterSwap = true;  // gif library depends on data from previous buffer
@@ -64,7 +66,6 @@ public:
       log_i("end gif animation");
       _gif.close();
     }
-    delay(1);
   };
 
   void setSd(SDFS *sd) {
@@ -200,4 +201,4 @@ private:
 
 SDFS         *Video::_pSD = nullptr;
 File          Video::_gifFile;
-ESP_8_BIT_GFX Video::_videoOut(true, 16);
+ESP_8_BIT_GFX Video::_videoOut(true, 8);
