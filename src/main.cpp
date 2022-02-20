@@ -6,7 +6,7 @@
 
 Audio _mp3Audio;
 
-bool _active = false;
+bool _active = true;
 
 void setup() {
   log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
@@ -19,26 +19,25 @@ void setup() {
     log_e("Card Mount Failed");
     return;
   } else {
-    _mp3Audio.disconnect();
+    _mp3Audio.setAutoReconnect(false);  // do not connect automatically.
+    _mp3Audio.setResetBle(true);        // do reset ble before starting ble.
     _mp3Audio.setBleSpeakerName("Soundcore 3");
-    _mp3Audio.setFilename("/non.mp3");
-    //_mp3Audio.setFilename("/asa-ga-kuru.mp3");
+    _mp3Audio.setFilename("/non4_ab.mp3");
     _mp3Audio.setSDFS(&SD);
     _mp3Audio.begin();
   }
 
+  M5.dis.drawpix(0, 0xFFFF00);
   log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
-  M5.dis.drawpix(0, 0x00FF00);
 }
 
 void loop() {
   if (M5.Btn.pressedFor(1000)) {
-    _mp3Audio.enableUpdate(false);
+    _active = false;
     M5.dis.drawpix(0, 0x000000);
-    delay(2000);
     _mp3Audio.disconnect();
+    delay(2000);
     ESP.restart();
-    delay(1000);
   }
 
   if (M5.Btn.wasPressed()) {
@@ -51,8 +50,10 @@ void loop() {
     }
   }
 
-  _mp3Audio.enableUpdate(_active);
-  _mp3Audio.update();
+  if (_active) {
+    _mp3Audio.update();
+  }
+
   M5.update();
   delay(1);
 }

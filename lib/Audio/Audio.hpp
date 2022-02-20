@@ -3,7 +3,7 @@
 
 #define USE_HELIX
 #define USE_A2DP
-#define A2DP_BUFFER_COUNT 30  // to control exception ~128Kbps
+#define A2DP_BUFFER_COUNT 29  // to control exception ~128Kbps
 
 #include <M5Atom.h>
 #include <AudioTools.h>
@@ -20,15 +20,14 @@ public:
             _copy(_decoder, _audioFile),
             _bleSpeakerName(""),
             _filename(""),
-            _active(false){
-
-            };
+            _active(false){};
 
   void begin() {
     // Serial.begin(115200);
     // AudioLogger::instance().begin(Serial, AudioLogger::Info);
     if (_pSD != nullptr) {
       _audioFile = _pSD->open(_filename.c_str());
+
       if (_audioFile.size() > 0) {
         log_i("Open Audio File...");
 
@@ -40,9 +39,7 @@ public:
         _decoder.begin();
         log_i("Begin decoder...");
 
-        _active = true;
       } else {
-        _active = false;
         log_e("can not open mp3 file.");
       }
     }
@@ -60,22 +57,25 @@ public:
     _filename = name;
   }
 
-  void enableUpdate(bool active) {
-    _active = active;
-  }
-
   void disconnect(void) {
-    _source.source().end(false);
+    if (_active)
+      _source.source().end(false);
   }
 
-  void
-  update() {
-    if (_active) {
-      if (!_copy.copy()) {
-        _audioFile.seek(0);
-        _active = false;
-      }
-    }
+  void setAutoReconnect(bool isEnable) {
+    if (!_active)
+      _source.source().set_auto_reconnect(isEnable);
+  }
+
+  void setResetBle(bool isEnable) {
+    if (!_active)
+      _source.source().set_reset_ble(isEnable);
+  }
+
+  void update() {
+    if (!_copy.copy())
+      _audioFile.seek(0);
+
     delay(1);
   }
 
