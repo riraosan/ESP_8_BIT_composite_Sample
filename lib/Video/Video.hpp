@@ -9,7 +9,7 @@
 #include <SD.h>
 
 constexpr int _gifOffset_x  = 6;
-constexpr int _gifOffset_y  = 6;
+constexpr int _gifOffset_y  = 45;
 constexpr int _textOffset_x = 6;
 constexpr int _textOffset_y = 6;
 
@@ -201,4 +201,4 @@ private:
 
 SDFS         *Video::_pSD = nullptr;
 File          Video::_gifFile;
-ESP_8_BIT_GFX Video::_videoOut(true, 8);
+ESP_8_BIT_GFX Video::_videoOut(true, 16);
