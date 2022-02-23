@@ -3,34 +3,56 @@
 
 #include <M5Atom.h>
 #include <AnimatedGIF.h>
-#include <ESP_8_BIT_GFX.h>
+//#include <ESP_8_BIT_GFX.h>
+#define LGFX_USE_V1
+#include <LovyanGFX.hpp>
+#include <lgfx_user/LGFX_ESP32_CVBS.hpp>
+
 #include <SPI.h>
 #include <FS.h>
 #include <SD.h>
+
+// ヘッダをincludeします。
+
+static LGFX_CVBS   _lgfx;
+static LGFX_Sprite _splite(&_lgfx);
+
+// constexpr int16_t MAX_Y = 239;
+// constexpr int16_t MAX_X = 255;
 
 constexpr int _gifOffset_x  = 6;
 constexpr int _gifOffset_y  = 45;
 constexpr int _textOffset_x = 6;
 constexpr int _textOffset_y = 6;
 
+//#define TEST
+
 class Video {
 public:
-  Video() : _filename(""){
-
-            };
+  Video() : _filename("") {
+  }
 
   void begin(void) {
+    _lgfx.begin();
+    _lgfx.fillScreen(0);
+
+    _lgfx.waitForFrame();
+
+#if defined(TEST)
     _videoOut.copyAfterSwap = true;  // gif library depends on data from previous buffer
     _videoOut.begin();
     _videoOut.fillScreen(0);
     _videoOut.waitForFrame();
 
     _gif.begin(LITTLE_ENDIAN_PIXELS);
-
+#endif
     log_i("start videoOut");
-  };
+  }
 
   void update(void) {
+    _lgfx.waitForFrame();
+
+#if defined(TEST)
     int  frameCount = 0;
     long lTimeStart = 0;
 
@@ -66,7 +88,8 @@ public:
       log_i("end gif animation");
       _gif.close();
     }
-  };
+#endif
+  }
 
   void setSd(SDFS *sd) {
     _pSD = sd;
@@ -131,8 +154,7 @@ private:
     y         = pDraw->iY + pDraw->y;  // current line
 
     s = pDraw->pPixels;
-    if (pDraw->ucDisposalMethod == 2)  // restore to background color
-    {
+    if (pDraw->ucDisposalMethod == 2) {  // restore to background color
       for (x = 0; x < pDraw->iWidth; x++) {
         if (s[x] == pDraw->ucTransparent)
           s[x] = pDraw->ucBackground;
@@ -140,8 +162,7 @@ private:
       pDraw->ucHasTransparency = 0;
     }
     // Apply the new pixels to the main image
-    if (pDraw->ucHasTransparency)  // if transparency used
-    {
+    if (pDraw->ucHasTransparency) {  // if transparency used
       uint8_t *pEnd, c, ucTransparent = pDraw->ucTransparent;
       int      x, iCount;
       pEnd   = s + pDraw->iWidth;
@@ -152,18 +173,18 @@ private:
         d = usTemp;
         while (c != ucTransparent && s < pEnd) {
           c = *s++;
-          if (c == ucTransparent)  // done, stop
-          {
-            s--;    // back up to treat it like transparent
-          } else {  // opaque
+          if (c == ucTransparent) {  // done, stop
+            s--;                     // back up to treat it like transparent
+          } else {                   // opaque
             *d++ = usPalette[c];
             iCount++;
           }
-        }            // while looking for opaque pixels
-        if (iCount)  // any opaque pixels?
-        {
+        }              // while looking for opaque pixels
+        if (iCount) {  // any opaque pixels?
           for (int xOffset = 0; xOffset < iCount; xOffset++) {
+#if defined(TEST)
             _videoOut.drawPixel(pDraw->iX + x + xOffset + _gifOffset_x, y + _gifOffset_y, usTemp[xOffset]);
+#endif
           }
           x += iCount;
           iCount = 0;
@@ -177,6 +198,7 @@ private:
           else
             s--;
         }
+
         if (iCount) {
           x += iCount;  // skip these
           iCount = 0;
@@ -186,19 +208,21 @@ private:
       s = pDraw->pPixels;
       // Translate the 8-bit pixels through the RGB565 palette (already byte reversed)
       for (x = 0; x < pDraw->iWidth; x++) {
+#if defined(TEST)
         _videoOut.drawPixel(x + _gifOffset_x, y + _gifOffset_y, usPalette[*s++]);
+#endif
       }
     }
   }
 
-  static SDFS         *_pSD;
-  static File          _gifFile;
-  static ESP_8_BIT_GFX _videoOut;
+  static SDFS *_pSD;
+  static File  _gifFile;
+  // static ESP_8_BIT_GFX _videoOut;
 
   AnimatedGIF _gif;
   String      _filename;
 };
 
-SDFS         *Video::_pSD = nullptr;
-File          Video::_gifFile;
-ESP_8_BIT_GFX Video::_videoOut(true, 16);
+SDFS *Video::_pSD = nullptr;
+File  Video::_gifFile;
+// ESP_8_BIT_GFX Video::_videoOut(true, 16);
