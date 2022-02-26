@@ -50,7 +50,7 @@
     "fstream": "cpp"
   },
   "markdown-pdf.styles": [
-    "./style.css"
+    ""
   ],
   "markdown-pdf.margin.top": "2.5cm",
   "markdown-pdf.margin.bottom": "3.5cm",
