@@ -3,7 +3,6 @@
 
 #include <M5Atom.h>
 #include <AnimatedGIF.h>
-//#include <ESP_8_BIT_GFX.h>
 #define LGFX_USE_V1
 #include <LovyanGFX.hpp>
 #include <lgfx_user/LGFX_ESP32_CVBS.hpp>
@@ -12,47 +11,37 @@
 #include <FS.h>
 #include <SD.h>
 
-// ヘッダをincludeします。
-
 static LGFX_CVBS   _lgfx;
 static LGFX_Sprite _splite(&_lgfx);
-
-// constexpr int16_t MAX_Y = 239;
-// constexpr int16_t MAX_X = 255;
 
 constexpr int _gifOffset_x  = 6;
 constexpr int _gifOffset_y  = 45;
 constexpr int _textOffset_x = 6;
 constexpr int _textOffset_y = 6;
 
-//#define TEST
-
+#define BUILD_TEST
 class Video {
 public:
   Video() : _filename("") {
   }
 
   void begin(void) {
+    _lgfx.setColorDepth(8);
+    _lgfx.setRotation(0);
     _lgfx.begin();
-    _lgfx.fillScreen(0);
 
+    _lgfx.fillScreen(0x00);
     _lgfx.waitForFrame();
-
-#if defined(TEST)
-    _videoOut.copyAfterSwap = true;  // gif library depends on data from previous buffer
-    _videoOut.begin();
-    _videoOut.fillScreen(0);
-    _videoOut.waitForFrame();
+    _lgfx.fillScreen(0x00);
+    _lgfx.waitForFrame();
 
     _gif.begin(LITTLE_ENDIAN_PIXELS);
-#endif
-    log_i("start videoOut");
+    log_i("start CVBS");
   }
 
+#if 1
   void update(void) {
     _lgfx.waitForFrame();
-
-#if defined(TEST)
     int  frameCount = 0;
     long lTimeStart = 0;
 
@@ -62,14 +51,14 @@ public:
       int waitTime;
 
       while (_gif.playFrame(false, &waitTime)) {
-        _videoOut.waitForFrame();
+        _lgfx.waitForFrame();
         long lTimeEnd = millis();
 
         long delta = lTimeEnd - lTimeStart;
         if (waitTime >= delta) {
           delay(waitTime - delta);
         } else {
-          log_w("Frame No.[%04d], waitTime[%d] < delta[%d]...", frameCount, waitTime, delta);
+          // log_w("Frame No.[%04d], waitTime[%d] < delta[%d]...", frameCount, waitTime, delta);
         }
 
         frameCount++;
@@ -84,12 +73,31 @@ public:
 #endif
         lTimeStart = millis();
       }
-      _videoOut.waitForFrame();
+
+      _lgfx.waitForFrame();
       log_i("end gif animation");
       _gif.close();
     }
-#endif
   }
+#else
+  void update(void) {
+    _lgfx.fillScreen(0x00);
+    _lgfx.waitForFrame();
+    delay(1000);
+    _lgfx.fillScreen(0xF800);  //赤
+    _lgfx.waitForFrame();
+    delay(1000);
+    _lgfx.fillScreen(0x07E0);  //緑
+    _lgfx.waitForFrame();
+    delay(1000);
+    _lgfx.fillScreen(0x001F);  //青
+    _lgfx.waitForFrame();
+    delay(1000);
+    _lgfx.fillScreen(0xffff);  //白
+    _lgfx.waitForFrame();
+    delay(1000);
+  }
+#endif
 
   void setSd(SDFS *sd) {
     _pSD = sd;
@@ -182,9 +190,7 @@ private:
         }              // while looking for opaque pixels
         if (iCount) {  // any opaque pixels?
           for (int xOffset = 0; xOffset < iCount; xOffset++) {
-#if defined(TEST)
-            _videoOut.drawPixel(pDraw->iX + x + xOffset + _gifOffset_x, y + _gifOffset_y, usTemp[xOffset]);
-#endif
+            _lgfx.drawPixel(pDraw->iX + x + xOffset + _gifOffset_x, y + _gifOffset_y, usTemp[xOffset]);
           }
           x += iCount;
           iCount = 0;
@@ -208,16 +214,13 @@ private:
       s = pDraw->pPixels;
       // Translate the 8-bit pixels through the RGB565 palette (already byte reversed)
       for (x = 0; x < pDraw->iWidth; x++) {
-#if defined(TEST)
-        _videoOut.drawPixel(x + _gifOffset_x, y + _gifOffset_y, usPalette[*s++]);
-#endif
+        _lgfx.drawPixel(x + _gifOffset_x, y + _gifOffset_y, usPalette[*s++]);
       }
     }
   }
 
   static SDFS *_pSD;
   static File  _gifFile;
-  // static ESP_8_BIT_GFX _videoOut;
 
   AnimatedGIF _gif;
   String      _filename;
@@ -225,4 +228,3 @@ private:
 
 SDFS *Video::_pSD = nullptr;
 File  Video::_gifFile;
-// ESP_8_BIT_GFX Video::_videoOut(true, 16);
