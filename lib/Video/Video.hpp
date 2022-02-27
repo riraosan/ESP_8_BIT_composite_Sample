@@ -30,6 +30,7 @@ public:
     _lgfx.setRotation(0);
     _lgfx.begin();
 
+    // TODO このダサいところをなんとかしたい
     _lgfx.fillScreen(0x00);
     _lgfx.waitForFrame();
     _lgfx.fillScreen(0x00);
