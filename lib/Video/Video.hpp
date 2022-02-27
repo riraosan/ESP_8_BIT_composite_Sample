@@ -14,35 +14,37 @@
 static LGFX_CVBS   _lgfx;
 static LGFX_Sprite _splite(&_lgfx);
 
-constexpr int _gifOffset_x  = 6;
+constexpr int _gifOffset_x  = 2;
 constexpr int _gifOffset_y  = 45;
-constexpr int _textOffset_x = 6;
+constexpr int _textOffset_x = 2;
 constexpr int _textOffset_y = 6;
 
-#define BUILD_TEST
+//#define TEST
+//#define DEBUG
+
 class Video {
 public:
   Video() : _filename("") {
   }
 
   void begin(void) {
+    _lgfx.setCopyAfterSwap(true);
     _lgfx.setColorDepth(8);
     _lgfx.setRotation(0);
+
+    _display_width  = _lgfx.width();
+    _display_height = _lgfx.height();
+
     _lgfx.begin();
 
-    // TODO このダサいところをなんとかしたい
     _lgfx.fillScreen(0x00);
-    _lgfx.waitForFrame();
-    _lgfx.fillScreen(0x00);
-    _lgfx.waitForFrame();
 
     _gif.begin(LITTLE_ENDIAN_PIXELS);
     log_i("start CVBS");
   }
 
-#if 1
+#if !defined(TEST)
   void update(void) {
-    _lgfx.waitForFrame();
     int  frameCount = 0;
     long lTimeStart = 0;
 
@@ -59,18 +61,18 @@ public:
         if (waitTime >= delta) {
           delay(waitTime - delta);
         } else {
-          // log_w("Frame No.[%04d], waitTime[%d] < delta[%d]...", frameCount, waitTime, delta);
+          log_w("Frame No.[%04d], waitTime[%d] < delta[%d]...", frameCount, waitTime, delta);
         }
 
         frameCount++;
 
 #if defined(DEBUG)
         // x:0~28 y:0~13
-        _videoOut.setTextColor(0xfa20, 0x0000);
-        _videoOut.printEfont("*", _textOffset_x + 8 * 0, _textOffset_y + 16 * 0);
-        _videoOut.printEfont("*", _textOffset_x + 8 * 28, _textOffset_y + 16 * 0);
-        _videoOut.printEfont("*", _textOffset_x + 8 * 0, _textOffset_y + 16 * 13);
-        _videoOut.printEfont("*", _textOffset_x + 8 * 28, _textOffset_y + 16 * 13);
+        // _lgfx.setTextColor(0xfa20, 0x0000);
+        // _lgfx.printEfont("*", _textOffset_x + 8 * 0, _textOffset_y + 16 * 0);
+        // _lgfx.printEfont("*", _textOffset_x + 8 * 28, _textOffset_y + 16 * 0);
+        // _lgfx.printEfont("*", _textOffset_x + 8 * 0, _textOffset_y + 16 * 13);
+        // _lgfx.printEfont("*", _textOffset_x + 8 * 28, _textOffset_y + 16 * 13);
 #endif
         lTimeStart = millis();
       }
@@ -82,20 +84,15 @@ public:
   }
 #else
   void update(void) {
-    _lgfx.fillScreen(0x00);
-    _lgfx.waitForFrame();
+    _lgfx.fillScreen(0x0000);  //黒
     delay(1000);
     _lgfx.fillScreen(0xF800);  //赤
-    _lgfx.waitForFrame();
     delay(1000);
     _lgfx.fillScreen(0x07E0);  //緑
-    _lgfx.waitForFrame();
     delay(1000);
     _lgfx.fillScreen(0x001F);  //青
-    _lgfx.waitForFrame();
     delay(1000);
     _lgfx.fillScreen(0xffff);  //白
-    _lgfx.waitForFrame();
     delay(1000);
   }
 #endif
@@ -154,6 +151,86 @@ private:
     return pFile->iPos;
   }
 
+#if true
+  static void _GIFDraw(GIFDRAW *pDraw) {
+    uint8_t  *s;
+    uint16_t *d, *usPalette, usTemp[320];
+    int       x, y, iWidth;
+
+    iWidth = pDraw->iWidth;
+    if (iWidth + pDraw->iX > _display_width)
+      iWidth = _display_width - pDraw->iX;
+
+    usPalette = pDraw->pPalette;
+    y         = pDraw->iY + pDraw->y;  // current line
+
+    if (y >= _display_height || pDraw->iX >= _display_width || iWidth < 1)
+      return;
+
+    s = pDraw->pPixels;
+    if (pDraw->ucDisposalMethod == 2)  // restore to background color
+    {
+      for (x = 0; x < iWidth; x++) {
+        if (s[x] == pDraw->ucTransparent)
+          s[x] = pDraw->ucBackground;
+      }
+      pDraw->ucHasTransparency = 0;
+    }
+
+    // Apply the new pixels to the main image
+    if (pDraw->ucHasTransparency)  // if transparency used
+    {
+      uint8_t *pEnd, c, ucTransparent = pDraw->ucTransparent;
+      int      x, iCount;
+      pEnd   = s + iWidth;
+      x      = 0;
+      iCount = 0;  // count non-transparent pixels
+      while (x < iWidth) {
+        c = ucTransparent - 1;
+        d = usTemp;
+        while (c != ucTransparent && s < pEnd) {
+          c = *s++;
+          if (c == ucTransparent)  // done, stop
+          {
+            s--;  // back up to treat it like transparent
+          } else  // opaque
+          {
+            *d++ = usPalette[c];
+            iCount++;
+          }
+        }            // while looking for opaque pixels
+        if (iCount)  // any opaque pixels?
+        {
+          _lgfx.setWindow(_gifOffset_x, y + _gifOffset_y, iWidth, 1);
+          _lgfx.writePixels(usTemp, iCount, true);
+          x += iCount;
+          iCount = 0;
+        }
+        // no, look for a run of transparent pixels
+        c = ucTransparent;
+        while (c == ucTransparent && s < pEnd) {
+          c = *s++;
+          if (c == ucTransparent)
+            iCount++;
+          else
+            s--;
+        }
+        if (iCount) {
+          x += iCount;  // skip these
+          iCount = 0;
+        }
+      }
+    } else {
+      s = pDraw->pPixels;
+      // Translate the 8-bit pixels through the RGB565 palette (already byte reversed)
+      for (x = 0; x < iWidth; x++)
+        usTemp[x] = usPalette[*s++];
+
+      _lgfx.setWindow(_gifOffset_x, y + _gifOffset_y, iWidth, 1);
+      _lgfx.writePixels(usTemp, iWidth, true);
+    }
+  }
+#else
   static void _GIFDraw(GIFDRAW *pDraw) {
     uint8_t  *s;
     uint16_t *d, *usPalette, usTemp[320];
@@ -219,9 +296,13 @@ private:
       }
     }
   }
+#endif
 
   static SDFS *_pSD;
   static File  _gifFile;
+
+  static int _display_width;
+  static int _display_height;
 
   AnimatedGIF _gif;
   String      _filename;
@@ -229,3 +310,6 @@ private:
 
 SDFS *Video::_pSD = nullptr;
 File  Video::_gifFile;
+
+int Video::_display_width  = 0;
+int Video::_display_height = 0;
