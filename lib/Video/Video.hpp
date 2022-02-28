@@ -47,15 +47,16 @@ public:
   void update(void) {
     int  frameCount = 0;
     long lTimeStart = 0;
+    long startTime  = lgfx::v1::millis();
 
     if (_gif.open(_filename.c_str(), _GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw)) {
-      log_i("start gif animation");
-      lTimeStart = millis();
+      log_printf("start gif animation\n");
+      lTimeStart = lgfx::v1::millis();
       int waitTime;
 
       while (_gif.playFrame(false, &waitTime)) {
         _lgfx.waitForFrame();
-        long lTimeEnd = millis();
+        long lTimeEnd = lgfx::v1::millis();
 
         long delta = lTimeEnd - lTimeStart;
         if (waitTime >= delta) {
@@ -74,11 +75,12 @@ public:
         // _lgfx.printEfont("*", _textOffset_x + 8 * 0, _textOffset_y + 16 * 13);
         // _lgfx.printEfont("*", _textOffset_x + 8 * 28, _textOffset_y + 16 * 13);
 #endif
-        lTimeStart = millis();
+        lTimeStart = lgfx::v1::millis();
       }
 
+      long playTime = lgfx::v1::millis() - startTime;
       _lgfx.waitForFrame();
-      log_i("end gif animation");
+      log_printf("end gif animation: time = %d\n", playTime);
       _gif.close();
     }
   }
