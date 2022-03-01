@@ -1,7 +1,7 @@
 .git
-.pio
-#.pio/build
-#.pio/libdeps/release/LovyanGFX/src/lgfx/v0
+#.pio
+.pio/build
+.pio/libdeps/release/LovyanGFX/src/lgfx/v0
 .vscode/c_cpp_properties.json
 .vscode/extension.json
 .vscode/launch.json

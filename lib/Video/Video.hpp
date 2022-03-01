@@ -19,7 +19,6 @@ constexpr int _gifOffset_y  = 45;
 constexpr int _textOffset_x = 2;
 constexpr int _textOffset_y = 6;
 
-//#define TEST
 //#define DEBUG
 
 class Video {
@@ -43,7 +42,6 @@ public:
     log_i("start CVBS");
   }
 
-#if !defined(TEST)
   void update(void) {
     int  frameCount = 0;
     long lTimeStart = 0;
@@ -84,20 +82,6 @@ public:
       _gif.close();
     }
   }
-#else
-  void update(void) {
-    _lgfx.fillScreen(0x0000);  //黒
-    delay(1000);
-    _lgfx.fillScreen(0xF800);  //赤
-    delay(1000);
-    _lgfx.fillScreen(0x07E0);  //緑
-    delay(1000);
-    _lgfx.fillScreen(0x001F);  //青
-    delay(1000);
-    _lgfx.fillScreen(0xffff);  //白
-    delay(1000);
-  }
-#endif
 
   void setSd(SDFS *sd) {
     _pSD = sd;
