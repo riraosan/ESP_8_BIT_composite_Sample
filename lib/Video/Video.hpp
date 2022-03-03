@@ -14,9 +14,9 @@
 static LGFX_CVBS   _lgfx;
 static LGFX_Sprite _splite(&_lgfx);
 
-constexpr int _gifOffset_x  = 2;
+constexpr int _gifOffset_x  = 6;
 constexpr int _gifOffset_y  = 45;
-constexpr int _textOffset_x = 2;
+constexpr int _textOffset_x = 6;
 constexpr int _textOffset_y = 6;
 
 //#define DEBUG
@@ -27,9 +27,6 @@ public:
   }
 
   void begin(void) {
-    _lgfx.setCopyAfterSwap(true);
-    _lgfx.setColorDepth(8);
-    _lgfx.setRotation(0);
 
     _display_width  = _lgfx.width();
     _display_height = _lgfx.height();

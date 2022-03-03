@@ -2,8 +2,8 @@
 #include <Arduino.h>
 
 //#define BUILD_TEST
-//#define CLOCK_SAMPLE
-#define RGB_TEST
+//#define RGB_TEST
+#define PDQ_TEST
 
 #if defined(BUILD_TEST)
 
@@ -46,8 +46,25 @@ void update(void) {
   _cvbs.waitForFrame();
 }
 
-#elif defined(CLOCK_SAMPLE)
-#include "ClockSample.h"
+#elif defined(PDQ_TEST)
+#include "test_TFT_graphicstest_PDQ.h"
+
+//OK
+void _testPixels(void) {
+  uint32_t usecPixels = testPixels();
+  Serial.print(F("Pixels                   "));
+  Serial.println(usecPixels);
+  delay(2000);
+}
+
+//OK
+void _testLines(void) {
+  uint32_t usecLines = testLines(_cvbs.color16to8(TFT_BLUE));
+  Serial.print(F("Lines                    "));
+  Serial.println(usecLines);
+  delay(100);
+}
+
 #endif
 
 void setUp(void) {
@@ -62,10 +79,11 @@ void setup() {
   UNITY_BEGIN();
 
   RUN_TEST(begin);
-
-  // UNITY_END();
+  RUN_TEST(_testPixels);
+  RUN_TEST(_testLines);
 }
 
 void loop() {
-  update();
+  _cvbs.waitForFrame();
+  UNITY_END();
 }
