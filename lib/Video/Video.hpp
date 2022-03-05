@@ -27,7 +27,6 @@ public:
   }
 
   void begin(void) {
-
     _display_width  = _lgfx.width();
     _display_height = _lgfx.height();
 
