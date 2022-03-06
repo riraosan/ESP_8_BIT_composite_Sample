@@ -14,7 +14,7 @@
 static LGFX_CVBS   _lgfx;
 static LGFX_Sprite _splite(&_lgfx);
 
-constexpr int _gifOffset_x  = 33;
+constexpr int _gifOffset_x  = 50;
 constexpr int _gifOffset_y  = 50;
 constexpr int _textOffset_x = 6;
 constexpr int _textOffset_y = 6;
@@ -56,7 +56,7 @@ public:
         if (waitTime >= delta) {
           delay(waitTime - delta);
         } else {
-          log_w("Frame No.[%04d], waitTime[%d] < delta[%d]...", frameCount, waitTime, delta);
+          //log_w("Frame No.[%04d], waitTime[%d] < delta[%d]...", frameCount, waitTime, delta);
         }
 
         frameCount++;
