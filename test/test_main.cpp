@@ -47,7 +47,7 @@ void update(void) {
 }
 
 #elif defined(PDQ_TEST)
-#include "test_TFT_graphicstest_PDQ.h"
+#include "./TFT_graphicstest_PDQ.ino"
 
 //OK
 void _testPixels(void) {
