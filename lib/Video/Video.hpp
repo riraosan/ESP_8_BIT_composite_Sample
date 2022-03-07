@@ -14,12 +14,10 @@
 static LGFX_CVBS   _lgfx;
 static LGFX_Sprite _splite(&_lgfx);
 
-constexpr int _gifOffset_x  = 50;
-constexpr int _gifOffset_y  = 50;
+constexpr int _gifOffset_x  = 30;
+constexpr int _gifOffset_y  = 55;
 constexpr int _textOffset_x = 6;
 constexpr int _textOffset_y = 6;
-
-//#define DEBUG
 
 class Video {
 public:
@@ -56,19 +54,11 @@ public:
         if (waitTime >= delta) {
           delay(waitTime - delta);
         } else {
-          //log_w("Frame No.[%04d], waitTime[%d] < delta[%d]...", frameCount, waitTime, delta);
+          log_i("No. %04d waitTime %d delta %d", frameCount, waitTime, delta);
         }
 
         frameCount++;
 
-#if defined(DEBUG)
-        // x:0~28 y:0~13
-        // _lgfx.setTextColor(0xfa20, 0x0000);
-        // _lgfx.printEfont("*", _textOffset_x + 8 * 0, _textOffset_y + 16 * 0);
-        // _lgfx.printEfont("*", _textOffset_x + 8 * 28, _textOffset_y + 16 * 0);
-        // _lgfx.printEfont("*", _textOffset_x + 8 * 0, _textOffset_y + 16 * 13);
-        // _lgfx.printEfont("*", _textOffset_x + 8 * 28, _textOffset_y + 16 * 13);
-#endif
         lTimeStart = lgfx::v1::millis();
       }
 
