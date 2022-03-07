@@ -54,7 +54,7 @@ public:
         if (waitTime >= delta) {
           delay(waitTime - delta);
         } else {
-          log_i("No. %04d waitTime %d delta %d", frameCount, waitTime, delta);
+          //log_i("No. %04d waitTime %d delta %d", frameCount, waitTime, delta);
         }
 
         frameCount++;
