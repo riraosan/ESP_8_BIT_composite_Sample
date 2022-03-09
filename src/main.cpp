@@ -15,14 +15,14 @@ void setup() {
   M5.dis.drawpix(0, 0xFF0000);
 
   SPI.begin(23, 33, 19, -1);
-  if (!SD.begin(-1, SPI, 10000000)) {
+  if (!SD.begin(-1, SPI, 24000000)) {
     log_e("Card Mount Failed");
     return;
   } else {
     _mp3Audio.setAutoReconnect(false);  // do not connect automatically.
     _mp3Audio.setResetBle(true);        // do reset ble before starting ble.
     _mp3Audio.setBleSpeakerName("Soundcore 3");
-    _mp3Audio.setFilename("/non4_ab.mp3");
+    _mp3Audio.setFilename("/non.mp3");
     _mp3Audio.setSDFS(&SD);
     _mp3Audio.begin();
   }
@@ -50,9 +50,8 @@ void loop() {
     }
   }
 
-  if (_active) {
+  if (_active)
     _mp3Audio.update();
-  }
 
   M5.update();
   delay(1);
