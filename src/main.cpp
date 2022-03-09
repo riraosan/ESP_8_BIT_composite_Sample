@@ -12,7 +12,7 @@ void setup() {
   log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
 
   SPI.begin(23, 33, 19, -1);
-  if (!SD.begin(-1, SPI, 10000000)) {
+  if (!SD.begin(-1, SPI, 24000000)) {
     log_e("Card Mount Failed");
     return;
   } else {
