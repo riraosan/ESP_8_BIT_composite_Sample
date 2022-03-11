@@ -29,7 +29,6 @@ public:
     _display_height = _lgfx.height();
 
     _lgfx.begin();
-
     _lgfx.fillScreen(0x00);
 
     _gif.begin(LITTLE_ENDIAN_PIXELS);
@@ -41,6 +40,7 @@ public:
     long lTimeStart = 0;
     long startTime  = lgfx::v1::millis();
 
+    _lgfx.fillScreen(0x00);
     if (_gif.open(_filename.c_str(), _GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw)) {
       log_printf("start gif animation\n");
       lTimeStart = lgfx::v1::millis();
@@ -54,7 +54,7 @@ public:
         if (waitTime >= delta) {
           delay(waitTime - delta);
         } else {
-          //log_i("No. %04d waitTime %d delta %d", frameCount, waitTime, delta);
+          // log_i("No. %04d waitTime %d delta %d", frameCount, waitTime, delta);
         }
 
         frameCount++;
@@ -67,6 +67,8 @@ public:
       log_printf("end gif animation: time = %d\n", playTime);
       _gif.close();
     }
+
+    _lgfx.fillScreen(0x00);
   }
 
   void setSd(SDFS *sd) {
