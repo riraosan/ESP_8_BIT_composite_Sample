@@ -15,11 +15,12 @@ void commandCallback(cmd* c) {
   String  cmdName(cmd.getName());
 
   log_i("%s", cmdName.c_str());
-
-  if (cmdName == "start") {
+  if (cmdName == "reset") {
+    ESP.restart();
+    delay(5000);
+  } else if (cmdName == "start") {
     active = true;
-  }
-  else if (cmdName == "stop") {
+  } else if (cmdName == "stop") {
     active = false;
   }
 }
@@ -41,6 +42,7 @@ void setup() {
 
   _cli.addCmd("start", commandCallback);
   _cli.addCmd("stop", commandCallback);
+  _cli.addCmd("reset", commandCallback);
 
   log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
 }
