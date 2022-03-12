@@ -5,9 +5,8 @@
 #include <SD.h>
 #include <Button2.h>
 
-Video     _composit;
-SimpleCLI _cli;
-Button2   _button;
+Video   _composit;
+Button2 _button;
 
 bool active = false;
 
@@ -16,7 +15,8 @@ void clickHandler(Button2& btn) {
     case SINGLE_CLICK:
       log_i("single ");
 
-      Serial.print("start\n");  // to video
+      _composit.start();
+      Serial.print("start\n");  // to audio
       break;
     case DOUBLE_CLICK:
       log_i("double ");
@@ -24,12 +24,15 @@ void clickHandler(Button2& btn) {
     case TRIPLE_CLICK:
       log_i("triple ");
 
-      Serial.print("cue\n");  // to video
+      _composit.stop();
+      Serial.print("stop\n");  // to audio
       break;
     case LONG_CLICK:
       log_i("long");
 
-      Serial.print("restart\n");  // to video
+      Serial.print("restart\n");  // to audio
+      delay(2000);
+      ESP.restart();
       break;
   }
   log_i("click (%d)", btn.getNumberOfClicks());
