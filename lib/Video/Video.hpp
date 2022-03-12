@@ -21,8 +21,9 @@ constexpr int _textOffset_y = 6;
 
 class Video {
 public:
-  Video() : _filename("") {
-  }
+  Video() : _filename(""),
+            _isActive(false),
+            _isOpen(false) {}
 
   void begin(void) {
     _display_width  = _lgfx.width();
@@ -36,39 +37,26 @@ public:
   }
 
   void update(void) {
-    int  frameCount = 0;
-    long lTimeStart = 0;
-    long startTime  = lgfx::v1::millis();
+    if (_isActive) {
+      long lTimeStart = lgfx::v1::millis();
+      int  waitTime;
 
-    _lgfx.fillScreen(0x00);
-    if (_gif.open(_filename.c_str(), _GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw)) {
-      log_printf("start gif animation\n");
-      lTimeStart = lgfx::v1::millis();
-      int waitTime;
-
-      while (_gif.playFrame(false, &waitTime)) {
+      if (_gif.playFrame(false, &waitTime)) {
         _lgfx.waitForFrame();
-        long lTimeEnd = lgfx::v1::millis();
-
-        long delta = lTimeEnd - lTimeStart;
-        if (waitTime >= delta) {
-          delay(waitTime - delta);
-        } else {
-          // log_i("No. %04d waitTime %d delta %d", frameCount, waitTime, delta);
-        }
-
-        frameCount++;
-
-        lTimeStart = lgfx::v1::millis();
+      } else {
+        _lgfx.fillScreen(0x00);
+        stop();
+        closeGif();
+        openGif();
       }
 
-      long playTime = lgfx::v1::millis() - startTime;
-      _lgfx.waitForFrame();
-      log_printf("end gif animation: time = %d\n", playTime);
-      _gif.close();
+      long delta = lgfx::v1::millis() - lTimeStart;
+      if (waitTime > delta) {
+        delay(waitTime - delta);
+      } else {
+        // log_i("No. %04d waitTime %d delta %d", frameCount, waitTime, delta);
+      }
     }
-
-    _lgfx.fillScreen(0x00);
   }
 
   void setSd(SDFS *sd) {
@@ -77,6 +65,37 @@ public:
 
   void setFilename(String name) {
     _filename = name;
+  }
+
+  void openGif(void) {
+    if (_gif.open(_filename.c_str(), _GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw)) {
+      _isOpen = true;
+    }
+  }
+
+  void closeGif(void) {
+    if (_isOpen) {
+      _gif.close();
+      _isOpen   = false;
+      _isActive = false;
+      _lgfx.fillScreen(0x00);
+    }
+  }
+
+  void resetGif(void) {
+    if (_isOpen) {
+      _gif.reset();
+    }
+  }
+
+  void start(void) {
+    if (_isOpen)
+      _isActive = true;
+  }
+
+  void stop(void) {
+    if (_isOpen)
+      _isActive = false;
   }
 
 private:
@@ -280,6 +299,9 @@ private:
 
   AnimatedGIF _gif;
   String      _filename;
+
+  bool _isActive;
+  bool _isOpen;
 };
 
 SDFS *Video::_pSD = nullptr;

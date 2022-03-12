@@ -47,7 +47,8 @@
     "unordered_set": "cpp",
     "vector": "cpp",
     "initializer_list": "cpp",
-    "fstream": "cpp"
+    "fstream": "cpp",
+    "random": "cpp"
   },
   "markdown-pdf.styles": [
     ""
