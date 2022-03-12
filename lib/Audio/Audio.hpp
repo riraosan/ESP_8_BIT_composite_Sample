@@ -72,11 +72,24 @@ public:
       _source.source().set_reset_ble(isEnable);
   }
 
+  void start(void) {
+    _active = true;
+  }
+
+  void stop(void) {
+    _active = false;
+  }
+
+  void cue(void) {
+    _active = false;
+    _audioFile.seek(0);
+  }
+
   void update() {
-    if (!_copy.copy()) {
-      disconnect();
-      delay(2000);
-      ESP.restart();
+    if (_active) {
+      if (!_copy.copy()) {
+        _active = false;
+      }
     }
 
     delay(1);
