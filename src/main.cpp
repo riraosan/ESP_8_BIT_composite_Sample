@@ -3,39 +3,53 @@
 #include <Video.hpp>
 #include <SPI.h>
 #include <SD.h>
-#include <SimpleCLI.h>
+#include <Button2.h>
 
 Video     _composit;
 SimpleCLI _cli;
+Button2   _button;
 
 bool active = false;
 
-void commandCallback(cmd* c) {
-  Command cmd(c);
-  String  cmdName(cmd.getName());
+void clickHandler(Button2& btn) {
+  switch (btn.getClickType()) {
+    case SINGLE_CLICK:
+      log_i("single ");
 
-  log_i("%s", cmdName.c_str());
-  if (cmdName == "restart") {
-    _composit.stop();
-    _composit.closeGif();
-    delay(1000);
-    ESP.restart();
-    delay(5000);
-  } else if (cmdName == "start") {
-    _composit.start();
-  } else if (cmdName == "stop") {
-    _composit.stop();
+      Serial.print("start\n");  // to video
+      break;
+    case DOUBLE_CLICK:
+      log_i("double ");
+      break;
+    case TRIPLE_CLICK:
+      log_i("triple ");
+
+      Serial.print("cue\n");  // to video
+      break;
+    case LONG_CLICK:
+      log_i("long");
+
+      Serial.print("restart\n");  // to video
+      break;
   }
+  log_i("click (%d)", btn.getNumberOfClicks());
+}
+
+void initButton(void) {
+  _button.setClickHandler(clickHandler);
+  _button.setDoubleClickHandler(clickHandler);
+  _button.setTripleClickHandler(clickHandler);
+  _button.setLongClickHandler(clickHandler);
+  _button.setDebounceTime(10);
+  _button.begin(39);  // for ATOM Lite
 }
 
 void setup() {
   log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
 
-  Serial.begin(115200);
+  initButton();
 
-  _cli.addCmd("start", commandCallback);
-  _cli.addCmd("stop", commandCallback);
-  _cli.addCmd("restart", commandCallback);
+  Serial.begin(115200);
 
   SPI.begin(23, 33, 19, -1);
   if (!SD.begin(-1, SPI, 24000000)) {
@@ -52,11 +66,8 @@ void setup() {
 }
 
 void loop() {
+  _button.loop();
   _composit.update();
-
-  if (Serial.available() > 0) {
-    _cli.parse(Serial.readStringUntil('\n'));
-  }
 
   delay(1);
 }
