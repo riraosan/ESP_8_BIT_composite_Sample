@@ -3,56 +3,60 @@
 #include <SPI.h>
 #include <SD.h>
 #include <Audio.hpp>
-#include <Button2.h>
+#include <SimpleCLI.h>
+#include <Ticker.h>
 
-Audio   _mp3Audio;
-Button2 _button;
+Audio     _mp3Audio;
+SimpleCLI _cli;
+Ticker    _restart;
 
-void clickHandler(Button2& btn) {
-  switch (btn.getClickType()) {
-    case SINGLE_CLICK:
-      log_i("single ");
-
-      Serial.print("start\n");  // to video
-      delay(780);
-      _mp3Audio.start();
-      M5.dis.drawpix(0, 0x00FF00);
-      break;
-    case DOUBLE_CLICK:
-      log_i("double ");
-      break;
-    case TRIPLE_CLICK:
-      log_i("triple ");
-
-      Serial.print("cue\n");  // to video
-      _mp3Audio.stop();
-      M5.dis.drawpix(0, 0xFF0000);
-      break;
-    case LONG_CLICK:
-      log_i("long");
-
-      _mp3Audio.stop();
-      M5.dis.drawpix(0, 0x000000);
-      _mp3Audio.disconnect();
-      Serial.print("restart\n");  // to video
-      delay(2000);
-      ESP.restart();
-      break;
-  }
-  log_i("click (%d)", btn.getNumberOfClicks());
+void restart(void) {
+  ESP.restart();
+  delay(5000);
 }
 
-void initButton(void) {
-  _button.setClickHandler(clickHandler);
-  _button.setLongClickHandler(clickHandler);
-  _button.setDoubleClickHandler(clickHandler);
-  _button.setTripleClickHandler(clickHandler);
-  _button.begin(39);  // for ATOM Lite
+void commandCallback(cmd* c) {
+  Command cmd(c);
+  String  cmdName(cmd.getName());
+
+  log_i("%s", cmdName.c_str());
+  if (cmdName == "start") {
+    delay(780);
+    _mp3Audio.start();
+
+    M5.dis.drawpix(0, 0x00FF00);
+  } else if (cmdName == "stop") {
+    _mp3Audio.stop();
+
+    M5.dis.drawpix(0, 0xFF0000);
+  } else if (cmdName == "cue") {
+    _mp3Audio.cue();
+
+    M5.dis.drawpix(0, 0x000000);
+    delay(100);
+    M5.dis.drawpix(0, 0x00FF00);
+    delay(100);
+    M5.dis.drawpix(0, 0x000000);
+    delay(100);
+    M5.dis.drawpix(0, 0x00FF00);
+  } else if (cmdName == "restart") {
+    _mp3Audio.stop();
+    _mp3Audio.disconnect();
+
+    M5.dis.drawpix(0, 0x000000);
+
+    _restart.once_ms(2000, restart);
+  }
 }
 
 void setup() {
   log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
   Serial.begin(115200);
+
+  _cli.addCmd("start", commandCallback);
+  _cli.addCmd("stop", commandCallback);
+  _cli.addCmd("cue", commandCallback);
+  _cli.addCmd("restart", commandCallback);
 
   M5.begin(false, false, true);  // using LED
   M5.dis.drawpix(0, 0xFF0000);
@@ -75,8 +79,11 @@ void setup() {
 }
 
 void loop() {
-  _button.loop();
   _mp3Audio.update();
-  M5.update();
+
+  if (Serial.available() > 0) {
+    _cli.parse(Serial.readStringUntil('\n'));
+  }
+
   delay(1);
 }

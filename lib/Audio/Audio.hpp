@@ -58,8 +58,7 @@ public:
   }
 
   void disconnect(void) {
-    if (_active)
-      _source.source().end(false);
+    _source.source().end(false);
   }
 
   void setAutoReconnect(bool isEnable) {
@@ -81,7 +80,7 @@ public:
   }
 
   void cue(void) {
-    _active = false;
+    _decoder.flush();
     _audioFile.seek(0);
   }
 
