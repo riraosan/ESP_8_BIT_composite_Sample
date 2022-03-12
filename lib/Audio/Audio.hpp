@@ -20,7 +20,9 @@ public:
             _copy(_decoder, _audioFile),
             _bleSpeakerName(""),
             _filename(""),
-            _active(false){};
+            _active(false){
+
+            };
 
   void begin() {
     // Serial.begin(115200);
@@ -58,7 +60,7 @@ public:
   }
 
   void disconnect(void) {
-    _source.source().end(false);
+    _source.source().end(true);
   }
 
   void setAutoReconnect(bool isEnable) {
