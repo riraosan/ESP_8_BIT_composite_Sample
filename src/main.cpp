@@ -53,7 +53,7 @@ void loop() {
     if(_once){
       Serial.print("start\n");
       _once = false;
-      delay(800);
+      delay(780);
       Serial.print("stop\n");
     }
     _mp3Audio.update();
