@@ -15,12 +15,12 @@ void clickHandler(Button2& btn) {
     case SINGLE_CLICK:
       log_i("single ");
       if (active) {
-        Serial1.print("stop\n");  // to audio
         _composit.stop();
+        Serial1.print("stop\n");  // to audio
         active = false;
       } else {
-        Serial1.print("start\n");  // to audio
         _composit.start();
+        Serial1.print("start\n");  // to audio
         active = true;
       }
       break;
