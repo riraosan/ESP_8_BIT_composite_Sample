@@ -8,9 +8,6 @@
 Video   _composit;
 Button2 _button;
 
-#define RX1 26
-#define TX1 32
-
 bool active = false;
 
 void clickHandler(Button2& btn) {
@@ -54,7 +51,8 @@ void setup() {
 
   initButton();
 
-  Serial1.begin(115200);
+  Serial1.begin(115200, SERIAL_8N1, 26, 32);
+  Serial1.flush();
 
   SPI.begin(23, 33, 19, -1);
   if (!SD.begin(-1, SPI, 24000000)) {
@@ -68,6 +66,8 @@ void setup() {
   }
 
   log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
+
+  Serial1.printf("VIDEO Setup Done : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
 }
 
 void loop() {
