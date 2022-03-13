@@ -9,8 +9,8 @@
 Audio     _mp3Audio;
 SimpleCLI _cli;
 
-#define RX1 26
-#define TX1 32
+#define RX1 32
+#define TX1 26
 
 void commandCallback(cmd* c) {
   Command cmd(c);
