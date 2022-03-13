@@ -4,24 +4,30 @@
 #include <SPI.h>
 #include <SD.h>
 #include <Button2.h>
+#include <Ticker.h>
 
 Video   _composit;
 Button2 _button;
+Ticker  _audioStart;
 
-bool active = false;
+bool isStart = false;
+
+void startAudio(void) {
+  Serial1.print("start\n");  // to audio
+}
 
 void clickHandler(Button2& btn) {
   switch (btn.getClickType()) {
     case SINGLE_CLICK:
       log_i("single ");
-      if (active) {
+      if (isStart) {
         _composit.stop();
         Serial1.print("stop\n");  // to audio
-        active = false;
+        isStart = true;
       } else {
         _composit.start();
-        Serial1.print("start\n");  // to audio
-        active = true;
+        _audioStart.once_ms(1300, startAudio);
+        isStart = false;
       }
       break;
     case DOUBLE_CLICK:
@@ -34,6 +40,7 @@ void clickHandler(Button2& btn) {
       log_i("long");
       break;
   }
+
   log_i("click (%d)", btn.getNumberOfClicks());
 }
 
@@ -66,13 +73,11 @@ void setup() {
   }
 
   log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
-
-  Serial1.printf("VIDEO Setup Done : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
 }
 
 void loop() {
-  _button.loop();
+  if(!_composit.state()){
+    _button.loop();
+  }
   _composit.update();
-
-  delay(1);
 }

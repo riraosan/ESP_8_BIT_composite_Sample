@@ -98,6 +98,10 @@ public:
       _isActive = false;
   }
 
+  bool state(void){
+    return _isActive;
+  }
+
 private:
   static void *_GIFOpenFile(const char *fname, int32_t *pSize) {
     _gifFile = _pSD->open(fname);
