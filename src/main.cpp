@@ -9,9 +9,6 @@
 Audio     _mp3Audio;
 SimpleCLI _cli;
 
-#define RX1 32
-#define TX1 26
-
 void commandCallback(cmd* c) {
   Command cmd(c);
   String  cmdName(cmd.getName());
@@ -50,6 +47,9 @@ void commandCallback(cmd* c) {
 void setup() {
   log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
   Serial1.begin(115200);
+
+  Serial1.begin(115200, SERIAL_8N1, 32, 26);
+  Serial1.flush();
 
   _cli.addCmd("start", commandCallback);
   _cli.addCmd("stop", commandCallback);
