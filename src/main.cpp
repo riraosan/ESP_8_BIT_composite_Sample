@@ -5,12 +5,12 @@
 #include <Audio.hpp>
 #include <SimpleCLI.h>
 #include <Ticker.h>
-#include <SoftwareSerial.h>
 
 Audio     _mp3Audio;
 SimpleCLI _cli;
-Ticker    _restart;
-SoftwareSerial _serial(26, 32);
+
+#define RX1 26
+#define TX1 32
 
 void commandCallback(cmd* c) {
   Command cmd(c);
@@ -18,7 +18,7 @@ void commandCallback(cmd* c) {
 
   log_i("%s", cmdName.c_str());
   if (cmdName == "start") {
-    delay(780);
+    //delay(780);
     _mp3Audio.start();
 
     M5.dis.drawpix(0, 0x00FF00);
@@ -49,7 +49,7 @@ void commandCallback(cmd* c) {
 
 void setup() {
   log_i("Free Heap : %d", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
-  _serial.begin(115200);
+  Serial1.begin(115200);
 
   _cli.addCmd("start", commandCallback);
   _cli.addCmd("stop", commandCallback);
@@ -81,8 +81,10 @@ void setup() {
 void loop() {
   _mp3Audio.update();
 
-  if (_serial.available() > 0) {
-    _cli.parse(_serial.readStringUntil('\n'));
+  if (Serial1.available() > 0) {
+    String command(Serial1.readStringUntil('\n'));
+    log_i("%s", command.c_str());
+    _cli.parse(command);
   }
 
   delay(1);
