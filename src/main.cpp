@@ -4,11 +4,12 @@
 #include <SPI.h>
 #include <SD.h>
 #include <Button2.h>
-#include <SoftwareSerial.h>
 
-Video          _composit;
-Button2        _button;
-SoftwareSerial _serial(32, 26);
+Video   _composit;
+Button2 _button;
+
+#define RX1 26
+#define TX1 32
 
 bool active = false;
 
@@ -17,11 +18,11 @@ void clickHandler(Button2& btn) {
     case SINGLE_CLICK:
       log_i("single ");
       if (active) {
-        _serial.print("stop\n");  // to audio
+        Serial1.print("stop\n");  // to audio
         _composit.stop();
         active = false;
       } else {
-        _serial.print("start\n");  // to audio
+        Serial1.print("start\n");  // to audio
         _composit.start();
         active = true;
       }
@@ -53,7 +54,7 @@ void setup() {
 
   initButton();
 
-  _serial.begin(115200);
+  Serial1.begin(115200);
 
   SPI.begin(23, 33, 19, -1);
   if (!SD.begin(-1, SPI, 24000000)) {
