@@ -10,11 +10,6 @@ Audio     _mp3Audio;
 SimpleCLI _cli;
 Ticker    _restart;
 
-void restart(void) {
-  ESP.restart();
-  delay(5000);
-}
-
 void commandCallback(cmd* c) {
   Command cmd(c);
   String  cmdName(cmd.getName());
@@ -42,10 +37,11 @@ void commandCallback(cmd* c) {
   } else if (cmdName == "restart") {
     _mp3Audio.stop();
     _mp3Audio.disconnect();
-
+    delay(1500);
     M5.dis.drawpix(0, 0x000000);
 
-    _restart.once_ms(2000, restart);
+    ESP.restart();
+    delay(2000);
   }
 }
 
@@ -55,8 +51,8 @@ void setup() {
 
   _cli.addCmd("start", commandCallback);
   _cli.addCmd("stop", commandCallback);
-  _cli.addCmd("cue", commandCallback);
-  _cli.addCmd("restart", commandCallback);
+  //st_cli.addCmd("cue", commandCallback);
+  //_cli.addCmd("restart", commandCallback);
 
   M5.begin(false, false, true);  // using LED
   M5.dis.drawpix(0, 0xFF0000);
@@ -66,11 +62,13 @@ void setup() {
     log_e("Card Mount Failed");
     return;
   } else {
-    _mp3Audio.setAutoReconnect(false);  // do not connect automatically.
-    _mp3Audio.setResetBle(true);        // do reset ble before starting ble.
-    _mp3Audio.setBleSpeakerName("Soundcore 3");
     _mp3Audio.setFilename("/non.mp3");
     _mp3Audio.setSDFS(&SD);
+
+    _mp3Audio.setAutoReconnect(false);
+    _mp3Audio.setNVSInit(true);
+    _mp3Audio.setResetBle(true);
+    _mp3Audio.setBleSpeakerName("Soundcore 3");
     _mp3Audio.begin();
   }
 

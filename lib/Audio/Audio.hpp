@@ -60,17 +60,20 @@ public:
   }
 
   void disconnect(void) {
+    _source.source().disconnect();
     _source.source().end(true);
   }
 
   void setAutoReconnect(bool isEnable) {
-    if (!_active)
-      _source.source().set_auto_reconnect(isEnable);
+    _source.source().set_auto_reconnect(isEnable);
   }
 
   void setResetBle(bool isEnable) {
-    if (!_active)
-      _source.source().set_reset_ble(isEnable);
+    _source.source().set_reset_ble(isEnable);
+  }
+
+  void setNVSInit(bool isEnable) {
+    _source.source().set_nvs_init(isEnable);
   }
 
   void start(void) {
@@ -82,13 +85,16 @@ public:
   }
 
   void cue(void) {
-    _decoder.flush();
-    _audioFile.seek(0);
+    if (_active == false) {
+      _decoder.flush();
+      _audioFile.seek(0);
+    }
   }
 
   void update() {
     if (_active) {
       if (!_copy.copy()) {
+        _audioFile.seek(0);
         _active = false;
       }
     }
