@@ -3,20 +3,28 @@
 
 //#define BUILD_TEST
 //#define RGB_TEST
-#define PDQ_TEST
-
-#if defined(BUILD_TEST)
-
-#include "buildtest.h"  // OK
-
-#elif defined(RGB_TEST)  // OK
+//#define PDQ_TEST
+//#define PARTY_PARROT
+//#define CLOCK_SAMPLE
+//#define FLASH_MEM_SPRITE
+//#define COLLISION_CIRCLES
+//#define MOVING_CIRCLES
+#define MOVING_ICONS
+//#define ROTATED_ZOOMS_SAMPLE
+//#define LONG_TEXT_SCROLL
 
 #if !defined LGFX_USE_V1
 #define LGFX_USE_V1
 #endif
 
 #include <LovyanGFX.hpp>
-#include <lgfx_user/LGFX_ESP32_CVBS.hpp>
+#include <lgfx_user/LGFX_ESP32_CVBS_sample.hpp>
+
+#if defined(BUILD_TEST)
+
+#include "buildtest.h"  // OK
+
+#elif defined(RGB_TEST)  // OK
 
 static LGFX_CVBS   _cvbs;
 static LGFX_Sprite _sprite(&_cvbs);
@@ -47,30 +55,117 @@ void update(void) {
 }
 
 #elif defined(PDQ_TEST)
+
+using TFT_eSPI = LGFX_CVBS;
+
 #include "./TFT_graphicstest_PDQ.ino"
 
-//OK
+uint32_t _wait = 500;
+
+void begin(void) {
+  tft.setCopyAfterSwap(true);
+  tft.setColorDepth(8);
+  tft.setRotation(0);
+
+  tft.begin();
+}
+
+void _testFillScreen(void) {
+  uint32_t usecFillScreen = testFillScreen();
+  Serial.print(F("Screen fill              "));
+  Serial.println(usecFillScreen);
+  delay(_wait);
+}
+
+void _testText(void) {
+  uint32_t usecText = testText();
+  Serial.print(F("Text                     "));
+  Serial.println(usecText);
+  delay(_wait);
+}
+
+// OK
 void _testPixels(void) {
   uint32_t usecPixels = testPixels();
   Serial.print(F("Pixels                   "));
   Serial.println(usecPixels);
-  delay(2000);
+  delay(_wait);
 }
 
-//OK
+// OK
 void _testLines(void) {
-  uint32_t usecLines = testLines(_cvbs.color16to8(TFT_BLUE));
+  uint32_t usecLines = testLines(TFT_BLUE);
   Serial.print(F("Lines                    "));
   Serial.println(usecLines);
-  delay(100);
+  delay(_wait);
 }
 
-#endif
-
-void setUp(void) {
+// OK
+void _testFastLines(void) {
+  uint32_t usecFastLines = testFastLines(TFT_RED, TFT_BLUE);
+  Serial.print(F("Horiz/Vert Lines         "));
+  Serial.println(usecFastLines);
+  delay(_wait);
 }
 
-void tearDown(void) {
+// OK
+void _testRects(void) {
+  uint32_t usecRects = testRects(TFT_GREEN);
+  Serial.print(F("Rectangles (outline)     "));
+  Serial.println(usecRects);
+  delay(_wait);
+}
+
+// OK
+void _testFilledRects(void) {
+  uint32_t usecFilledRects = testFilledRects(TFT_YELLOW, TFT_MAGENTA);
+  Serial.print(F("Rectangles (filled)      "));
+  Serial.println(usecFilledRects);
+  delay(_wait);
+}
+
+// OK
+void _testFilledCircles(void) {
+  uint32_t usecFilledCircles = testFilledCircles(10, TFT_MAGENTA);
+  Serial.print(F("Circles (filled)         "));
+  Serial.println(usecFilledCircles);
+  delay(_wait);
+}
+
+// OK
+void _testCircles(void) {
+  uint32_t usecCircles = testCircles(10, TFT_WHITE);
+  Serial.print(F("Circles (outline)        "));
+  Serial.println(usecCircles);
+  delay(_wait);
+}
+
+void _testTriangles(void) {
+  uint32_t usecTriangles = testTriangles();
+  Serial.print(F("Triangles (outline)      "));
+  Serial.println(usecTriangles);
+  delay(_wait);
+}
+
+void _testFilledTriangles(void) {
+  uint32_t usecFilledTrangles = testFilledTriangles();
+  Serial.print(F("Triangles (filled)       "));
+  Serial.println(usecFilledTrangles);
+  delay(_wait);
+}
+
+void _testRoundRects(void) {
+  uint32_t usecRoundRects = testRoundRects();
+  Serial.print(F("Rounded rects (outline)  "));
+  Serial.println(usecRoundRects);
+  delay(_wait);
+}
+
+void _testFilledRoundRects(void) {
+  uint32_t usedFilledRoundRects = testFilledRoundRects();
+  Serial.print(F("Rounded rects (filled)   "));
+  Serial.println(usedFilledRoundRects);
+  delay(_wait);
 }
 
 void setup() {
@@ -79,11 +174,104 @@ void setup() {
   UNITY_BEGIN();
 
   RUN_TEST(begin);
+  RUN_TEST(_testFillScreen);
+  RUN_TEST(_testText);
   RUN_TEST(_testPixels);
   RUN_TEST(_testLines);
-}
+  RUN_TEST(_testFastLines);
+  RUN_TEST(_testRects);
+  RUN_TEST(_testFilledRects);
+  RUN_TEST(_testFilledCircles);
+  RUN_TEST(_testCircles);
+  RUN_TEST(_testTriangles);
+  RUN_TEST(_testFilledTriangles);
+  RUN_TEST(_testRoundRects);
+  RUN_TEST(_testFilledRoundRects);
 
-void loop() {
-  _cvbs.waitForFrame();
+  Serial.println(F("Done!"));
+
+  uint16_t c = 4;
+  int8_t   d = 1;
+  for (int32_t i = 0; i < tft.height(); i++) {
+    tft.drawFastHLine(0, i, tft.width(), c);
+    c += d;
+    if (c <= 4 || c >= 11)
+      d = -d;
+  }
+
+  tft.setCursor(10, 10);
+  tft.setTextColor(TFT_MAGENTA);
+  tft.setTextSize(2);
+
+  tft.println(F("  LovyanGFX test"));
+
+  delay(_wait);
+
+  tft.setTextSize(1);
+  tft.setTextColor(TFT_WHITE);
+  tft.println(F(""));
+  tft.setTextSize(1);
+  tft.println(F(""));
+  tft.setTextColor(tft.color332(0x80, 0x80, 0x80));
+
+  tft.println(F(""));
+
+  tft.setTextColor(TFT_GREEN);
+  tft.println(F(" Benchmark               microseconds"));
+  tft.println(F(""));
+  tft.setTextColor(TFT_YELLOW);
+
+  delay(_wait);
+
+  tft.setTextSize(1);
+  tft.println(F(""));
+  tft.setTextColor(TFT_GREEN);
+  tft.setTextSize(2);
+  tft.print(F(" Benchmark Complete!"));
+
+  delay(60 * 1000L);
+
   UNITY_END();
 }
+
+#elif defined(PARTY_PARROT)
+
+using LGFX = LGFX_CVBS;
+#include "../examples/Sprite/PartyParrot/PartyParrot.ino"
+
+#elif defined(CLOCK_SAMPLE)//NG 2022-03-19
+
+using LGFX = LGFX_CVBS;
+#include "../examples/Sprite/ClockSample/ClockSample.ino"
+
+#elif defined(FLASH_MEM_SPRITE)//OK 2022-03-19
+
+using LGFX = LGFX_CVBS;
+#include "../examples/Sprite/FlashMemSprite/FlashMemSprite.ino"
+
+#elif defined(COLLISION_CIRCLES)//NG 2022-03-19
+
+using LGFX = LGFX_CVBS;
+#include "../examples/Sprite/CollisionCircles/CollisionCircles.ino"
+
+#elif defined(MOVING_CIRCLES)//OK 2022-03-19
+
+using LGFX = LGFX_CVBS;
+#include "../examples/Sprite/MovingCircles/MovingCircles.ino"
+
+#elif defined(MOVING_ICONS)//OK 2022-03-19
+
+using LGFX = LGFX_CVBS;
+#include "../examples/Sprite/MovingIcons/MovingIcons.ino"
+
+#elif defined(ROTATED_ZOOMS_SAMPLE)//NG 2022-03-19
+
+using LGFX = LGFX_CVBS;
+#include "../examples/Sprite/RotatedZoomSample/RotatedZoomSample.ino"
+
+#elif defined(LONG_TEXT_SCROLL)//NG 2022-03-19
+
+using LGFX = LGFX_CVBS;
+#include "../examples/Standard/LongTextScroll/LongTextScroll.ino"
+
+#endif

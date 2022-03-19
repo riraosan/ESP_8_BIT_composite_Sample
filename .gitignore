@@ -1,3 +1,4 @@
 .git
 .pio
+#.pio\libdeps\release\LovyanGFX\src\lgfx\v0
 .vscode

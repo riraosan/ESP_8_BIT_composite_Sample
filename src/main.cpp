@@ -26,7 +26,7 @@ void clickHandler(Button2& btn) {
         isStart = true;
       } else {
         _composit.start();
-        _audioStart.once_ms(1300, startAudio);
+        _audioStart.once_ms(1150, startAudio);
         isStart = false;
       }
       break;
