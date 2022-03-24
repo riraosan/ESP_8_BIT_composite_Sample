@@ -1,17 +1,17 @@
 #include <unity.h>
 #include <Arduino.h>
 
-//#define BUILD_TEST
-//#define RGB_TEST
-//#define PDQ_TEST
-//#define PARTY_PARROT
-//#define CLOCK_SAMPLE
-//#define FLASH_MEM_SPRITE
-//#define COLLISION_CIRCLES
-//#define MOVING_CIRCLES
-#define MOVING_ICONS
-//#define ROTATED_ZOOMS_SAMPLE
-//#define LONG_TEXT_SCROLL
+// #define BUILD_TEST            // OK
+// #define RGB_TEST              // OK
+// #define PDQ_TEST              // OK
+// #define PARTY_PARROT          // OK
+// #define CLOCK_SAMPLE          // OK
+// #define FLASH_MEM_SPRITE      // OK
+// #define COLLISION_CIRCLES     // NG
+// #define MOVING_CIRCLES        // OK
+// #define MOVING_ICONS          // NG なぜか真ん中に境目が見えるようになった。
+// #define ROTATED_ZOOMS_SAMPLE  // OK
+#define LONG_TEXT_SCROLL  // NG
 
 #if !defined LGFX_USE_V1
 #define LGFX_USE_V1
@@ -29,12 +29,8 @@
 static LGFX_CVBS   _cvbs;
 static LGFX_Sprite _sprite(&_cvbs);
 
-void begin(void) {
-  _cvbs.setCopyAfterSwap(true);
-  _cvbs.setColorDepth(8);
-  _cvbs.setRotation(0);
-
-  _cvbs.begin();
+void setup(void) {
+  _cvbs.init();
 
   _cvbs.fillScreen(0x0000);  //黒
   delay(1000);
@@ -50,7 +46,7 @@ void begin(void) {
   delay(1000);
 }
 
-void update(void) {
+void loop(void) {
   _cvbs.waitForFrame();
 }
 
@@ -84,7 +80,6 @@ void _testText(void) {
   delay(_wait);
 }
 
-// OK
 void _testPixels(void) {
   uint32_t usecPixels = testPixels();
   Serial.print(F("Pixels                   "));
@@ -92,7 +87,6 @@ void _testPixels(void) {
   delay(_wait);
 }
 
-// OK
 void _testLines(void) {
   uint32_t usecLines = testLines(TFT_BLUE);
   Serial.print(F("Lines                    "));
@@ -100,7 +94,6 @@ void _testLines(void) {
   delay(_wait);
 }
 
-// OK
 void _testFastLines(void) {
   uint32_t usecFastLines = testFastLines(TFT_RED, TFT_BLUE);
   Serial.print(F("Horiz/Vert Lines         "));
@@ -108,7 +101,6 @@ void _testFastLines(void) {
   delay(_wait);
 }
 
-// OK
 void _testRects(void) {
   uint32_t usecRects = testRects(TFT_GREEN);
   Serial.print(F("Rectangles (outline)     "));
@@ -116,7 +108,6 @@ void _testRects(void) {
   delay(_wait);
 }
 
-// OK
 void _testFilledRects(void) {
   uint32_t usecFilledRects = testFilledRects(TFT_YELLOW, TFT_MAGENTA);
   Serial.print(F("Rectangles (filled)      "));
@@ -124,7 +115,6 @@ void _testFilledRects(void) {
   delay(_wait);
 }
 
-// OK
 void _testFilledCircles(void) {
   uint32_t usecFilledCircles = testFilledCircles(10, TFT_MAGENTA);
   Serial.print(F("Circles (filled)         "));
@@ -132,7 +122,6 @@ void _testFilledCircles(void) {
   delay(_wait);
 }
 
-// OK
 void _testCircles(void) {
   uint32_t usecCircles = testCircles(10, TFT_WHITE);
   Serial.print(F("Circles (outline)        "));
@@ -234,42 +223,45 @@ void setup() {
   UNITY_END();
 }
 
+void loop() {
+}
+
 #elif defined(PARTY_PARROT)
 
 using LGFX = LGFX_CVBS;
 #include "../examples/Sprite/PartyParrot/PartyParrot.ino"
 
-#elif defined(CLOCK_SAMPLE)//NG 2022-03-19
+#elif defined(CLOCK_SAMPLE)
 
 using LGFX = LGFX_CVBS;
 #include "../examples/Sprite/ClockSample/ClockSample.ino"
 
-#elif defined(FLASH_MEM_SPRITE)//OK 2022-03-19
+#elif defined(FLASH_MEM_SPRITE)
 
 using LGFX = LGFX_CVBS;
 #include "../examples/Sprite/FlashMemSprite/FlashMemSprite.ino"
 
-#elif defined(COLLISION_CIRCLES)//NG 2022-03-19
+#elif defined(COLLISION_CIRCLES)
 
 using LGFX = LGFX_CVBS;
 #include "../examples/Sprite/CollisionCircles/CollisionCircles.ino"
 
-#elif defined(MOVING_CIRCLES)//OK 2022-03-19
+#elif defined(MOVING_CIRCLES)
 
 using LGFX = LGFX_CVBS;
 #include "../examples/Sprite/MovingCircles/MovingCircles.ino"
 
-#elif defined(MOVING_ICONS)//OK 2022-03-19
+#elif defined(MOVING_ICONS)
 
 using LGFX = LGFX_CVBS;
 #include "../examples/Sprite/MovingIcons/MovingIcons.ino"
 
-#elif defined(ROTATED_ZOOMS_SAMPLE)//NG 2022-03-19
+#elif defined(ROTATED_ZOOMS_SAMPLE)  //  width = 180 OK, 183 NG
 
 using LGFX = LGFX_CVBS;
 #include "../examples/Sprite/RotatedZoomSample/RotatedZoomSample.ino"
 
-#elif defined(LONG_TEXT_SCROLL)//NG 2022-03-19
+#elif defined(LONG_TEXT_SCROLL)
 
 using LGFX = LGFX_CVBS;
 #include "../examples/Standard/LongTextScroll/LongTextScroll.ino"

@@ -3,21 +3,17 @@
 
 #include <M5Atom.h>
 #include <AnimatedGIF.h>
+
 #define LGFX_USE_V1
-#include <LovyanGFX.hpp>
-#include <lgfx_user/LGFX_ESP32_CVBS.hpp>
+#include <LovyanGFX.h>
+#include <lgfx_user/LGFX_ESP32_CVBS_sample.hpp>
 
 #include <SPI.h>
 #include <FS.h>
 #include <SD.h>
 
-static LGFX_CVBS   _lgfx;
-static LGFX_Sprite _splite(&_lgfx);
-
-constexpr int _gifOffset_x  = 30;
-constexpr int _gifOffset_y  = 55;
-constexpr int _textOffset_x = 6;
-constexpr int _textOffset_y = 6;
+static LGFX_CVBS   _cvbs;
+static LGFX_Sprite _sprite(&_cvbs);
 
 class Video {
 public:
@@ -26,11 +22,19 @@ public:
             _isOpen(false) {}
 
   void begin(void) {
-    _display_width  = _lgfx.width();
-    _display_height = _lgfx.height();
+    _display_width  = _cvbs.width() - 1;
+    _display_height = _cvbs.height() - 1;
 
-    _lgfx.begin();
-    _lgfx.fillScreen(0x00);
+    log_i("width, %d, height, %d", _display_width, _display_height);
+
+    _sprite.setColorDepth(8);
+    _sprite.setRotation(0);
+    if(!_sprite.createSprite(241, 203)){
+      log_e("can not allocate sprite buffer.");
+    }
+
+    _cvbs.begin();
+    _cvbs.fillScreen(0);
 
     _gif.begin(LITTLE_ENDIAN_PIXELS);
     log_i("start CVBS");
@@ -42,19 +46,17 @@ public:
       int  waitTime;
 
       if (_gif.playFrame(false, &waitTime)) {
-        _lgfx.waitForFrame();
+        long delta = lgfx::v1::millis() - lTimeStart;
+        _sprite.pushRotateZoom(0, 0.9, 0.9);
+        if (waitTime > delta) {
+          delay(waitTime - delta);
+        } else {
+          // log_i("No. %04d waitTime %d delta %d", frameCount, waitTime, delta);
+        }
       } else {
-        _lgfx.fillScreen(0x00);
-        stop();
+        // stop();
         closeGif();
         openGif();
-      }
-
-      long delta = lgfx::v1::millis() - lTimeStart;
-      if (waitTime > delta) {
-        delay(waitTime - delta);
-      } else {
-        // log_i("No. %04d waitTime %d delta %d", frameCount, waitTime, delta);
       }
     }
   }
@@ -76,9 +78,9 @@ public:
   void closeGif(void) {
     if (_isOpen) {
       _gif.close();
-      _isOpen   = false;
-      _isActive = false;
-      _lgfx.fillScreen(0x00);
+      _isOpen = false;
+      // _isActive = false;
+      // _cvbs.fillScreen(0);
     }
   }
 
@@ -98,7 +100,7 @@ public:
       _isActive = false;
   }
 
-  bool state(void){
+  bool state(void) {
     return _isActive;
   }
 
@@ -148,7 +150,6 @@ private:
     return pFile->iPos;
   }
 
-#if true
   static void _GIFDraw(GIFDRAW *pDraw) {
     uint8_t  *s;
     uint16_t *d, *usPalette, usTemp[320];
@@ -195,14 +196,12 @@ private:
             *d++ = usPalette[c];
             iCount++;
           }
-        }            // while looking for opaque pixels
-        if (iCount)  // any opaque pixels?
-        {
-          _lgfx.setWindow(_gifOffset_x, y + _gifOffset_y, iWidth, 1);
-          _lgfx.writePixels(usTemp, iCount, true);
+        }              // while looking for opaque pixels
+        if (iCount) {  // any opaque pixels?
           x += iCount;
           iCount = 0;
         }
+
         // no, look for a run of transparent pixels
         c = ucTransparent;
         while (c == ucTransparent && s < pEnd) {
@@ -222,78 +221,11 @@ private:
       // Translate the 8-bit pixels through the RGB565 palette (already byte reversed)
       for (x = 0; x < iWidth; x++)
         usTemp[x] = usPalette[*s++];
-
-      _lgfx.setWindow(_gifOffset_x, y + _gifOffset_y, iWidth, 1);
-      _lgfx.writePixels(usTemp, iWidth, true);
     }
+    // log_i("pDraw->iX, %d, y, %d", pDraw->iX, y);
+    _sprite.setWindow(pDraw->iX, y, iWidth, 1);
+    _sprite.pushPixels(usTemp, iWidth, true);
   }
-#else
-  static void _GIFDraw(GIFDRAW *pDraw) {
-    uint8_t  *s;
-    uint16_t *d, *usPalette, usTemp[320];
-    int       x, y;
-
-    usPalette = pDraw->pPalette;
-    y         = pDraw->iY + pDraw->y;  // current line
-
-    s = pDraw->pPixels;
-    if (pDraw->ucDisposalMethod == 2) {  // restore to background color
-      for (x = 0; x < pDraw->iWidth; x++) {
-        if (s[x] == pDraw->ucTransparent)
-          s[x] = pDraw->ucBackground;
-      }
-      pDraw->ucHasTransparency = 0;
-    }
-    // Apply the new pixels to the main image
-    if (pDraw->ucHasTransparency) {  // if transparency used
-      uint8_t *pEnd, c, ucTransparent = pDraw->ucTransparent;
-      int      x, iCount;
-      pEnd   = s + pDraw->iWidth;
-      x      = 0;
-      iCount = 0;  // count non-transparent pixels
-      while (x < pDraw->iWidth) {
-        c = ucTransparent - 1;
-        d = usTemp;
-        while (c != ucTransparent && s < pEnd) {
-          c = *s++;
-          if (c == ucTransparent) {  // done, stop
-            s--;                     // back up to treat it like transparent
-          } else {                   // opaque
-            *d++ = usPalette[c];
-            iCount++;
-          }
-        }              // while looking for opaque pixels
-        if (iCount) {  // any opaque pixels?
-          for (int xOffset = 0; xOffset < iCount; xOffset++) {
-            _lgfx.drawPixel(pDraw->iX + x + xOffset + _gifOffset_x, y + _gifOffset_y, usTemp[xOffset]);
-          }
-          x += iCount;
-          iCount = 0;
-        }
-        // no, look for a run of transparent pixels
-        c = ucTransparent;
-        while (c == ucTransparent && s < pEnd) {
-          c = *s++;
-          if (c == ucTransparent)
-            iCount++;
-          else
-            s--;
-        }
-
-        if (iCount) {
-          x += iCount;  // skip these
-          iCount = 0;
-        }
-      }
-    } else {
-      s = pDraw->pPixels;
-      // Translate the 8-bit pixels through the RGB565 palette (already byte reversed)
-      for (x = 0; x < pDraw->iWidth; x++) {
-        _lgfx.drawPixel(x + _gifOffset_x, y + _gifOffset_y, usPalette[*s++]);
-      }
-    }
-  }
-#endif
 
   static SDFS *_pSD;
   static File  _gifFile;
