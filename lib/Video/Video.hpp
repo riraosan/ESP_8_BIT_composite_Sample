@@ -22,14 +22,14 @@ public:
             _isOpen(false) {}
 
   void begin(void) {
-    _display_width  = _cvbs.width() - 1;
-    _display_height = _cvbs.height() - 1;
+    _width  = _cvbs.width();
+    _height = _cvbs.height();
 
-    log_i("width, %d, height, %d", _display_width, _display_height);
+    log_i("width, %d, height, %d", _width, _height);
 
     _sprite.setColorDepth(8);
     _sprite.setRotation(0);
-    if(!_sprite.createSprite(241, 203)){
+    if (!_sprite.createSprite(190, 160)) {
       log_e("can not allocate sprite buffer.");
     }
 
@@ -47,7 +47,7 @@ public:
 
       if (_gif.playFrame(false, &waitTime)) {
         long delta = lgfx::v1::millis() - lTimeStart;
-        _sprite.pushRotateZoom(0, 0.9, 0.9);
+        _sprite.pushSprite(30, 35);
         if (waitTime > delta) {
           delay(waitTime - delta);
         } else {
@@ -156,14 +156,11 @@ private:
     int       x, y, iWidth;
 
     iWidth = pDraw->iWidth;
-    if (iWidth + pDraw->iX > _display_width)
-      iWidth = _display_width - pDraw->iX;
+    if (iWidth > _width)
+      iWidth = _width;
 
     usPalette = pDraw->pPalette;
     y         = pDraw->iY + pDraw->y;  // current line
-
-    if (y >= _display_height || pDraw->iX >= _display_width || iWidth < 1)
-      return;
 
     s = pDraw->pPixels;
     if (pDraw->ucDisposalMethod == 2)  // restore to background color
@@ -198,6 +195,8 @@ private:
           }
         }              // while looking for opaque pixels
         if (iCount) {  // any opaque pixels?
+          _sprite.setWindow(pDraw->iX + x, y, iCount, 1);
+          _sprite.pushPixels((uint16_t *)usTemp, iCount, true);
           x += iCount;
           iCount = 0;
         }
@@ -221,17 +220,17 @@ private:
       // Translate the 8-bit pixels through the RGB565 palette (already byte reversed)
       for (x = 0; x < iWidth; x++)
         usTemp[x] = usPalette[*s++];
+      // log_i("x, %d, y, %d, iWidth + pDraw->iX, %d, iWidth, %d, pDraw->iX, %d", x, y, iWidth + pDraw->iX, iWidth, pDraw->iX);
+      _sprite.setWindow(pDraw->iX, y, iWidth, 1);
+      _sprite.pushPixels((uint16_t *)usTemp, iWidth, true);
     }
-    // log_i("pDraw->iX, %d, y, %d", pDraw->iX, y);
-    _sprite.setWindow(pDraw->iX, y, iWidth, 1);
-    _sprite.pushPixels(usTemp, iWidth, true);
   }
 
   static SDFS *_pSD;
   static File  _gifFile;
 
-  static int _display_width;
-  static int _display_height;
+  static int _width;
+  static int _height;
 
   AnimatedGIF _gif;
   String      _filename;
@@ -243,5 +242,5 @@ private:
 SDFS *Video::_pSD = nullptr;
 File  Video::_gifFile;
 
-int Video::_display_width  = 0;
-int Video::_display_height = 0;
+int Video::_width  = 0;
+int Video::_height = 0;
