@@ -5,7 +5,7 @@
 #include <AnimatedGIF.h>
 #define LGFX_USE_V1
 #include <LovyanGFX.hpp>
-#include <lgfx_user/LGFX_ESP32_CVBS.hpp>
+#include <lgfx_user/LGFX_ESP32_CVBS_sample.hpp>
 
 #include <SPI.h>
 #include <FS.h>
