@@ -1,22 +1,22 @@
-#if !defined LGFX_AUTODETECT
-#define LGFX_AUTODETECT
-#endif
+// #if !defined LGFX_AUTODETECT
+// #define LGFX_AUTODETECT
+// #endif
 
-#if !defined LGFX_USE_V1
-#define LGFX_USE_V1
-#endif
+// #if !defined LGFX_USE_V1
+// #define LGFX_USE_V1
+// #endif
 
 #if defined(ARDUINO) && defined(ESP32)
 #include <SPIFFS.h>
 #endif
 
-#include <LovyanGFX.hpp>
-#include <lgfx_user/LGFX_ESP32_CVBS.hpp>
+// #include <LovyanGFX.hpp>
+// #include <lgfx_user/LGFX_ESP32_CVBS.hpp>
 
 static LGFX_CVBS   _lgfx;
 static LGFX_Sprite _sprite(&_lgfx);
 
-void build_setup(void) {
+void setup(void) {
   _lgfx.init();
   _lgfx.setRotation(1);
   _lgfx.setBrightness(128);
@@ -127,13 +127,13 @@ void build_setup(void) {
   _lgfx.startWrite();
 
 #if defined(ARDUINO) && defined(ESP32)
-  _lgfx.drawBmpFile(SPIFFS, "/test.bmp");
-  _lgfx.drawPngFile(SPIFFS, "/test.png");
-  _lgfx.drawJpgFile(SPIFFS, "/test.jpg");
+  //_lgfx.drawBmpFile(SPIFFS, "/test.bmp");
+  //_lgfx.drawPngFile(SPIFFS, "/test.png");
+  //_lgfx.drawJpgFile(SPIFFS, "/test.jpg");
 #endif
 }
 
-void build_loop(void) {
+void loop(void) {
   static int   count = 0;
   static int   a     = 0;
   static int   x     = 0;

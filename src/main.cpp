@@ -66,7 +66,8 @@ void setup() {
     log_e("Card Mount Failed");
     return;
   } else {
-    _composit.setFilename("/non_small.gif");
+    //_composit.setFilename("/non_small.gif");
+    _composit.setFilename("/ToU.gif");
     _composit.setSd(&SD);
     _composit.begin();
     _composit.openGif();
@@ -76,7 +77,7 @@ void setup() {
 }
 
 void loop() {
-  if(!_composit.state()){
+  if (!_composit.state()) {
     _button.loop();
   }
   _composit.update();
